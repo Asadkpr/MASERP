@@ -1,0 +1,5 @@
+{
+  "name": "MASERP",
+  "description": "A user interface for an ERP system dashboard, allowing users to select from various modules like HR, Supply Chain, Finance, Student, and Website & Portals.",
+  "requestFramePermissions": []
+}
