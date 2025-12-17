@@ -154,8 +154,7 @@ const StorePage: React.FC<StorePageProps> = ({ requests, purchaseRequests, purch
 
         addToRequestCart(customItem, newItemData.quantity);
         setNewItemData({ name: '', brand: '', quantity: 1, unit: 'units', description: '' });
-        // Optional: switch back to list or stay to add more
-        alert("Custom item added to cart.");
+        alert("Custom item added to cart successfully. Add more or click Submit Requisition.");
     };
 
     const removeFromCart = (id: string) => {
@@ -470,9 +469,14 @@ const StorePage: React.FC<StorePageProps> = ({ requests, purchaseRequests, purch
                                             </div>
                                             <div className="md:w-48 flex flex-col justify-center gap-3">
                                                 <button 
-                                                    onClick={() => {
+                                                    onClick={async () => {
                                                         if (window.confirm("Confirm issue? This will deduct items from the main inventory.")) {
-                                                            onIssue(req.id);
+                                                            try {
+                                                                await onIssue(req.id);
+                                                            } catch (e) {
+                                                                console.error(e);
+                                                                alert("Error issuing items. Please check if items exist in inventory.");
+                                                            }
                                                         }
                                                     }}
                                                     className="w-full bg-purple-900 text-white py-2 rounded-lg font-bold hover:bg-purple-800 transition-colors shadow-sm text-sm"
@@ -597,7 +601,7 @@ const StorePage: React.FC<StorePageProps> = ({ requests, purchaseRequests, purch
                         <div className="p-6 grid grid-cols-1 lg:grid-cols-2 gap-6 flex-1 overflow-hidden">
                             {/* Left: Item Selection */}
                             <div className="flex flex-col h-full overflow-hidden">
-                                <div className="flex mb-4 border-b border-slate-200">
+                                <div className="flex mb-4 border-b border-slate-200 shrink-0">
                                     <button 
                                         className={`flex-1 pb-2 text-sm font-medium ${!isCustomItemMode ? 'border-b-2 border-purple-900 text-purple-900' : 'text-blue-900 hover:text-purple-800'}`}
                                         onClick={() => setIsCustomItemMode(false)}
@@ -614,11 +618,11 @@ const StorePage: React.FC<StorePageProps> = ({ requests, purchaseRequests, purch
 
                                 {!isCustomItemMode ? (
                                     <>
-                                        <h3 className="font-bold text-blue-900 mb-2">Inventory Items</h3>
+                                        <h3 className="font-bold text-blue-900 mb-2 shrink-0">Inventory Items</h3>
                                         <input 
                                             type="text" 
                                             placeholder="Search items..." 
-                                            className="w-full px-3 py-2 border border-slate-200 rounded-lg mb-3 text-sm focus:ring-2 focus:ring-purple-900 focus:outline-none placeholder-slate-400 text-blue-900"
+                                            className="w-full px-3 py-2 border border-slate-200 rounded-lg mb-3 text-sm focus:ring-2 focus:ring-purple-900 focus:outline-none placeholder-slate-400 text-blue-900 shrink-0"
                                             value={requestSearchQuery}
                                             onChange={(e) => setRequestSearchQuery(e.target.value)}
                                         />
@@ -653,9 +657,9 @@ const StorePage: React.FC<StorePageProps> = ({ requests, purchaseRequests, purch
                                         </div>
                                     </>
                                 ) : (
-                                    <div className="flex flex-col h-full">
-                                        <h3 className="font-bold text-blue-900 mb-4">New / Custom Item Details</h3>
-                                        <div className="space-y-4 flex-1 overflow-y-auto pr-2">
+                                    <div className="flex flex-col h-full overflow-hidden">
+                                        <h3 className="font-bold text-blue-900 mb-4 shrink-0">New / Custom Item Details</h3>
+                                        <div className="space-y-4 flex-1 overflow-y-auto pr-2 pb-2">
                                             <div>
                                                 <label className="block text-sm font-medium text-blue-900 mb-1">Item Name</label>
                                                 <input 
@@ -708,6 +712,8 @@ const StorePage: React.FC<StorePageProps> = ({ requests, purchaseRequests, purch
                                                     onChange={e => setNewItemData({...newItemData, description: e.target.value})}
                                                 ></textarea>
                                             </div>
+                                        </div>
+                                        <div className="pt-4 shrink-0">
                                             <button 
                                                 onClick={addCustomItemToCart}
                                                 className="w-full bg-purple-900 text-white py-2 rounded-lg font-medium hover:bg-purple-800 transition-colors"
@@ -721,7 +727,7 @@ const StorePage: React.FC<StorePageProps> = ({ requests, purchaseRequests, purch
 
                             {/* Right: Cart & Submit */}
                             <div className="flex flex-col h-full bg-purple-50 rounded border border-purple-200 p-4 overflow-hidden">
-                                <h3 className="font-bold text-blue-900 mb-2">Requisition Cart</h3>
+                                <h3 className="font-bold text-blue-900 mb-2 shrink-0">Requisition Cart</h3>
                                 <div className="flex-1 overflow-y-auto mb-4 bg-white rounded border border-slate-200 p-2">
                                     {requestCart.length === 0 ? (
                                         <p className="text-slate-400 text-center text-sm py-10">Cart is empty</p>
@@ -752,7 +758,7 @@ const StorePage: React.FC<StorePageProps> = ({ requests, purchaseRequests, purch
                                         </ul>
                                     )}
                                 </div>
-                                <div className="mt-auto">
+                                <div className="mt-auto shrink-0">
                                     <label className="block text-sm font-medium text-blue-900 mb-1">Purpose / Note</label>
                                     <textarea 
                                         value={requestPurpose}
@@ -827,3 +833,4 @@ const StorePage: React.FC<StorePageProps> = ({ requests, purchaseRequests, purch
 };
 
 export default StorePage;
+
