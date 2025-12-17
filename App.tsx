@@ -1,6 +1,4 @@
 
-
-
 import React, { useState, useEffect } from 'react';
 import LoginPage from './components/LoginPage';
 import DashboardPage from './components/DashboardPage';
@@ -625,8 +623,22 @@ const App: React.FC = () => {
   };
 
   const handleActionRequest = async (id: string, action: 'Approve' | 'Reject', reason?: string) => {
+      const request = supplyChainRequests.find(r => r.id === id);
+      let newStatus = 'Pending Store';
+
+      if (action === 'Approve') {
+          // Logic: If request originated from 'Store' (restocking), it skips "Pending Store" (issue) and goes to "Forwarded to Purchase" (buy).
+          if (request?.department === 'Store') {
+              newStatus = 'Forwarded to Purchase';
+          } else {
+              newStatus = 'Pending Store';
+          }
+      } else {
+          newStatus = 'Rejected';
+      }
+
       const updates: any = { 
-          status: action === 'Approve' ? 'Pending Store' : 'Rejected',
+          status: newStatus,
           approvalDate: new Date().toISOString()
       };
       if (reason) updates.rejectionReason = reason;
@@ -645,8 +657,11 @@ const App: React.FC = () => {
 
       // Deduct Stock
       request.items.forEach(item => {
-          const invRef = doc(db, 'inventory', item.inventoryId);
-          batch.update(invRef, { quantity: increment(-item.quantityRequested) });
+          // Only deduct stock if inventoryId is present and valid
+          if (item.inventoryId && item.inventoryId.trim() !== '') {
+              const invRef = doc(db, 'inventory', item.inventoryId);
+              batch.update(invRef, { quantity: increment(-item.quantityRequested) });
+          }
       });
 
       await batch.commit();
@@ -874,3 +889,4 @@ const App: React.FC = () => {
 };
 
 export default App;
+
