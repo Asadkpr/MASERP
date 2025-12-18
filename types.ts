@@ -309,3 +309,64 @@ export interface PurchaseOrder {
     grnNumber?: string;
     grnRemarks?: string;
 }
+
+// --- Task Manager Types ---
+
+export type TaskStatus = 'New' | 'Assigned' | 'In Progress' | 'Completed - Pending Review' | 'Closed' | 'Reopened';
+export type TaskPriority = 'Low' | 'Medium' | 'High' | 'Critical';
+export type TaskCategory = 'ERP' | 'IT Support' | 'Finance' | 'HR' | 'Operations' | 'Other';
+
+export interface TaskHistory {
+    action: string; // e.g., "Created", "Accepted", "Status Change"
+    by: string; // Email or Name of user
+    timestamp: string;
+    details?: string; // e.g., "Status changed from New to Assigned", "Rejection remarks: ..."
+}
+
+export interface Task {
+    id: string;
+    title: string;
+    description: string;
+    category: TaskCategory;
+    priority: TaskPriority;
+    
+    // Assignment
+    assignedTo: string; // Employee ID or Email
+    assignedToName: string;
+    assignedToDepartment?: string;
+    
+    createdBy: string; // Email
+    
+    // Dates
+    startDate: string;
+    dueDate: string;
+    completedDate?: string;
+    createdAt: string;
+
+    // Workflow
+    status: TaskStatus;
+    completionRemarks?: string;
+    rejectionRemarks?: string;
+    
+    // Audit
+    history: TaskHistory[];
+}
+
+export interface ChatMessage {
+    id: string;
+    senderEmail: string;
+    senderName: string;
+    receiverEmail?: string; // If empty/null, it is a public/group message
+    message: string;
+    timestamp: string;
+    isPublic: boolean;
+}
+
+export interface Note {
+    id: string;
+    userId: string;
+    title: string;
+    content: string;
+    color: 'yellow' | 'green' | 'blue' | 'purple' | 'red';
+    date: string;
+}

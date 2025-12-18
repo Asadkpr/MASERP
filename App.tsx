@@ -6,11 +6,11 @@ import EmployeeDashboard from './components/EmployeeDashboard';
 import HrDashboardPage from './components/hr/HrDashboardPage';
 import InventoryDashboardPage from './components/InventoryDashboardPage';
 import SupplyChainDashboardPage from './components/SupplyChainDashboardPage';
+import TaskManagerPage from './components/task_manager/TaskManagerPage';
 import PasswordChangePage from './components/PasswordChangePage';
-import type { Employee, User, AllPermissions, ModulePermissions, LeaveRequest, PayrollRecord, InventoryItem, Lab, Toner, MRF, LabSystem, AttendanceRecord, SupplyChainRequest, PurchaseRequest, Recipe, Vendor, PurchaseOrder, LeaveBalance } from './types';
+import type { Employee, User, AllPermissions, ModulePermissions, LeaveRequest, PayrollRecord, InventoryItem, Lab, Toner, MRF, LabSystem, AttendanceRecord, SupplyChainRequest, PurchaseRequest, Recipe, Vendor, PurchaseOrder, LeaveBalance, Task, ChatMessage, Note, TaskStatus } from './types';
 import { db, auth } from './components/firebase-config';
-import { collection, onSnapshot, doc, addDoc, updateDoc, deleteDoc, query, where, getDocs, setDoc, writeBatch, increment } from 'firebase/firestore';
-import { onAuthStateChanged, signInWithEmailAndPassword, signOut, createUserWithEmailAndPassword } from 'firebase/auth';
+import firebase from 'firebase/compat/app';
 
 const App: React.FC = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -35,858 +35,292 @@ const App: React.FC = () => {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [notes, setNotes] = useState<Note[]>([]);
+
+  // --- One-Time Seeding Logic ---
+  useEffect(() => {
+    if (isLoggedIn && currentUser === 'admin' && inventory.length === 0) {
+        const seedKitchenInventory = async () => {
+            const items = [
+                {itemCode: "CAF-101", model: "Tomatoes", type: "Kitchen", subCategory: "Vegetables", brand: "Local Vendor", quantity: 30, unit: "Kg", assetLife: "7 Days", location: "Kitchen Store", condition: "Good", status: "In Stock", assignedTo: ""},
+                {itemCode: "CAF-102", model: "Onions", type: "Kitchen", subCategory: "Vegetables", brand: "Local Vendor", quantity: 40, unit: "Kg", assetLife: "15 Days", location: "Kitchen Store", condition: "Good", status: "In Stock", assignedTo: ""},
+                {itemCode: "CAF-103", model: "Potatoes", type: "Kitchen", subCategory: "Vegetables", brand: "Local Vendor", quantity: 50, unit: "Kg", assetLife: "20 Days", location: "Kitchen Store", condition: "Good", status: "In Stock", assignedTo: ""},
+                {itemCode: "CAF-104", model: "Garlic", type: "Kitchen", subCategory: "Vegetables", brand: "Local Vendor", quantity: 10, unit: "Kg", assetLife: "30 Days", location: "Kitchen Store", condition: "Good", status: "In Stock", assignedTo: ""},
+                {itemCode: "CAF-105", model: "Ginger", type: "Kitchen", subCategory: "Vegetables", brand: "Local Vendor", quantity: 8, unit: "Kg", assetLife: "20 Days", location: "Kitchen Store", condition: "Good", status: "In Stock", assignedTo: ""},
+                {itemCode: "CAF-106", model: "Milk", type: "Kitchen", subCategory: "Dairy", brand: "Nestle", quantity: 25, unit: "Liter", assetLife: "7 Days", location: "Chiller", condition: "Good", status: "In Stock", assignedTo: ""},
+                {itemCode: "CAF-107", model: "Butter", type: "Kitchen", subCategory: "Dairy", brand: "Dairyland", quantity: 10, unit: "Kg", assetLife: "30 Days", location: "Chiller", condition: "Good", status: "In Stock", assignedTo: ""},
+                {itemCode: "CAF-108", model: "Cheddar Cheese", type: "Kitchen", subCategory: "Dairy", brand: "Adam's", quantity: 8, unit: "Kg", assetLife: "45 Days", location: "Chiller", condition: "Good", status: "In Stock", assignedTo: ""},
+                {itemCode: "CAF-109", model: "Eggs", type: "Kitchen", subCategory: "Poultry", brand: "Local Farm", quantity: 15, unit: "Dozen", assetLife: "10 Days", location: "Chiller", condition: "Good", status: "In Stock", assignedTo: ""},
+                {itemCode: "CAF-110", model: "Chicken Boneless", type: "Kitchen", subCategory: "Meat", brand: "Local Supplier", quantity: 20, unit: "Kg", assetLife: "7 Days", location: "Freezer", condition: "Good", status: "In Stock", assignedTo: ""},
+                {itemCode: "CAF-111", model: "Beef", type: "Kitchen", subCategory: "Meat", brand: "Local Supplier", quantity: 15, unit: "Kg", assetLife: "7 Days", location: "Freezer", condition: "Good", status: "In Stock", assignedTo: ""},
+                {itemCode: "CAF-112", model: "Bread Loaf", type: "Kitchen", subCategory: "Bakery", brand: "Local Bakery", quantity: 30, unit: "Pieces", assetLife: "3 Days", location: "Kitchen", condition: "Good", status: "In Stock", assignedTo: ""},
+                {itemCode: "CAF-113", model: "Burger Buns", type: "Kitchen", subCategory: "Bakery", brand: "Local Bakery", quantity: 50, unit: "Pieces", assetLife: "3 Days", location: "Kitchen", condition: "Good", status: "In Stock", assignedTo: ""},
+                {itemCode: "CAF-114", model: "Basmati Rice", type: "Kitchen", subCategory: "Grains", brand: "Guard", quantity: 25, unit: "Kg", assetLife: "12 Months", location: "Store Room", condition: "Good", status: "In Stock", assignedTo: ""},
+                {itemCode: "CAF-115", model: "Salt", type: "Kitchen", subCategory: "Spices", brand: "National", quantity: 10, unit: "Kg", assetLife: "24 Months", location: "Store Room", condition: "Good", status: "In Stock", assignedTo: ""},
+                {itemCode: "CAF-116", model: "Red Chili Powder", type: "Kitchen", subCategory: "Spices", brand: "National", quantity: 5, unit: "Kg", assetLife: "18 Months", location: "Store Room", condition: "Good", status: "In Stock", assignedTo: ""},
+                {itemCode: "CAF-117", model: "Mayonnaise", type: "Kitchen", subCategory: "Sauces", brand: "Young's", quantity: 10, unit: "Bottle", assetLife: "6 Months", location: "Store Room", condition: "Good", status: "In Stock", assignedTo: ""},
+                {itemCode: "CAF-118", model: "Ketchup", type: "Kitchen", subCategory: "Sauces", brand: "Young's", quantity: 10, unit: "Bottle", assetLife: "6 Months", location: "Store Room", condition: "Good", status: "In Stock", assignedTo: ""},
+                {itemCode: "CAF-119", model: "Cooking Oil", type: "Kitchen", subCategory: "Oil", brand: "Sufi", quantity: 20, unit: "Liter", assetLife: "12 Months", location: "Store Room", condition: "Good", status: "In Stock", assignedTo: ""},
+                {itemCode: "CAF-120", model: "Tea Leaves", type: "Kitchen", subCategory: "Tea", brand: "Tapal", quantity: 5, unit: "Kg", assetLife: "18 Months", location: "Store Room", condition: "Good", status: "In Stock", assignedTo: ""},
+                {itemCode: "CAF-121", model: "Coffee", type: "Kitchen", subCategory: "Coffee", brand: "Local Roaster", quantity: 8, unit: "Kg", assetLife: "6 Months", location: "Store Room", condition: "Good", status: "In Stock", assignedTo: ""},
+                {itemCode: "CAF-122", model: "Frozen Fries", type: "Kitchen", subCategory: "Frozen Food", brand: "McCain", quantity: 15, unit: "Kg", assetLife: "6 Months", location: "Freezer", condition: "Good", status: "In Stock", assignedTo: ""},
+                {itemCode: "CAF-123", model: "Takeaway Boxes", type: "Kitchen", subCategory: "Packaging", brand: "Local", quantity: 500, unit: "Pieces", assetLife: "N/A", location: "Store Room", condition: "Good", status: "In Stock", assignedTo: ""},
+                {itemCode: "CAF-124", model: "Dishwashing Liquid", type: "Kitchen", subCategory: "Cleaning", brand: "Max", quantity: 5, unit: "Liter", assetLife: "12 Months", location: "Cleaning Store", condition: "Good", status: "In Stock", assignedTo: ""},
+                {itemCode: "CAF-125", model: "Flour", type: "Kitchen", subCategory: "Bakery", brand: "Local Vendor", quantity: 100, unit: "kg", assetLife: "6 Months", location: "Store Room", condition: "Good", status: "In Stock", assignedTo: ""},
+                {itemCode: "CAF-126", model: "Sugar", type: "Kitchen", subCategory: "Bakery", brand: "Local Vendor", quantity: 50, unit: "kg", assetLife: "12 Months", location: "Store Room", condition: "Good", status: "In Stock", assignedTo: ""},
+                {itemCode: "CAF-127", model: "Coffee Beans", type: "Kitchen", subCategory: "Coffee", brand: "Local Vendor", quantity: 10, unit: "kg", assetLife: "6 Months", location: "Store Room", condition: "Good", status: "In Stock", assignedTo: ""}
+            ];
+            const batch = db.batch();
+            items.forEach(item => { const ref = db.collection('inventory').doc(); batch.set(ref, item); });
+            await batch.commit();
+        };
+        seedKitchenInventory();
+    }
+  }, [isLoggedIn, currentUser, inventory.length]);
 
   // --- Auth Listener ---
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
       if (user) {
         setIsLoggedIn(true);
-        // Map the internal firebase email back to 'admin' username for app logic consistency
-        if (user.email === 'admin@masbot.erp') {
-            setCurrentUser('admin');
-        } else {
-            setCurrentUser(user.email);
-        }
+        if (user.email === 'admin@masbot.erp') setCurrentUser('admin');
+        else setCurrentUser(user.email);
       } else {
-        // Only reset if we are not already logged in via bypass (currentUser is set)
-        if (!currentUser) {
-            setIsLoggedIn(false);
-            setCurrentUser(null);
-            setSelectedModule(null);
-        }
+        if (!currentUser) { setIsLoggedIn(false); setCurrentUser(null); setSelectedModule(null); }
       }
       setLoading(false);
     });
     return unsubscribe;
   }, []);
 
-  // --- Firebase Data Listeners (Only when Authenticated) ---
+  // --- Firebase Data Listeners ---
   useEffect(() => {
-    if (!currentUser) {
-        // Clear data on logout
-        setEmployees([]);
-        setUsers([]);
-        return;
-    }
-
+    if (!currentUser) { setEmployees([]); setUsers([]); return; }
     let unsubscribers: (() => void)[] = [];
     let isMounted = true;
-
     const initializeSystem = async () => {
-        // --- 1. DEFINE SEED DATA ---
-        const initialEmployees: Omit<Employee, 'id'>[] = [
-            { 
-                employeeId: 'EMP-001',
-                firstName: 'Ali', lastName: 'Raza', fatherName: 'Raza Khan', 
-                email: 'ali.raza@example.com', phone: '0300-1234567', cnic: '35202-1234567-1',
-                department: 'IT', designation: 'Developer', joiningDate: '2023-01-15', 
-                salary: '120000', role: 'Employee', status: 'Active', employmentType: 'Permanent',
-                leaveBalance: { annual: { total: 14, used: 0 }, sick: { total: 7, used: 0 }, casual: { total: 6, used: 0 }, maternity: { total: 90, used: 0 }, paternity: { total: 7, used: 0 }, alternateDayOff: { total: 50, used: 0 }, others: { total: 0, used: 0 } }
-            },
-            { 
-                employeeId: 'EMP-002',
-                firstName: 'Sara', lastName: 'Khan', fatherName: 'Ahmed Khan', 
-                email: 'sara.khan@example.com', phone: '0301-7654321', cnic: '35202-2345678-2',
-                department: 'HR', designation: 'HR Manager', joiningDate: '2022-05-20', 
-                salary: '150000', role: 'HR', status: 'Active', employmentType: 'Permanent',
-                leaveBalance: { annual: { total: 14, used: 0 }, sick: { total: 7, used: 0 }, casual: { total: 6, used: 0 }, maternity: { total: 90, used: 0 }, paternity: { total: 7, used: 0 }, alternateDayOff: { total: 50, used: 0 }, others: { total: 0, used: 0 } }
-            },
-            { 
-                employeeId: 'EMP-003',
-                firstName: 'Ahmed', lastName: 'Ali', fatherName: 'Bashir Ali', 
-                email: 'ahmed.ali@example.com', phone: '0302-1122334', cnic: '35202-3456789-3',
-                department: 'Finance', designation: 'Accountant', joiningDate: '2023-03-10', 
-                salary: '100000', role: 'HOD', status: 'Active', employmentType: 'Permanent',
-                leaveBalance: { annual: { total: 14, used: 0 }, sick: { total: 7, used: 0 }, casual: { total: 6, used: 0 }, maternity: { total: 90, used: 0 }, paternity: { total: 7, used: 0 }, alternateDayOff: { total: 50, used: 0 }, others: { total: 0, used: 0 } }
-            }
-        ];
-
-        const initialIngredients: Omit<InventoryItem, 'id'>[] = [
-            { type: 'Kitchen', model: 'Flour', quantity: 25, unit: 'kg', status: 'In Stock', assignedTo: '', itemCode: 'KIT-001' },
-            { type: 'Kitchen', model: 'Sugar', quantity: 25, unit: 'kg', status: 'In Stock', assignedTo: '', itemCode: 'KIT-002' },
-            { type: 'Kitchen', model: 'Salt', quantity: 10, unit: 'kg', status: 'In Stock', assignedTo: '', itemCode: 'KIT-003' },
-            { type: 'Kitchen', model: 'Butter', quantity: 10, unit: 'kg', status: 'In Stock', assignedTo: '', itemCode: 'KIT-004' },
-            { type: 'Kitchen', model: 'Milk', quantity: 20, unit: 'liters', status: 'In Stock', assignedTo: '', itemCode: 'KIT-005' },
-            { type: 'Kitchen', model: 'Eggs', quantity: 100, unit: 'pieces', status: 'In Stock', assignedTo: '', itemCode: 'KIT-006' },
-            { type: 'Kitchen', model: 'Coffee Beans', quantity: 5, unit: 'kg', status: 'In Stock', assignedTo: '', itemCode: 'KIT-007' },
-            { type: 'Kitchen', model: 'Yeast', quantity: 2, unit: 'kg', status: 'In Stock', assignedTo: '', itemCode: 'KIT-008' },
-            { type: 'Kitchen', model: 'Olive Oil', quantity: 5, unit: 'liters', status: 'In Stock', assignedTo: '', itemCode: 'KIT-009' },
-            { type: 'Kitchen', model: 'Vinegar', quantity: 5, unit: 'liters', status: 'In Stock', assignedTo: '', itemCode: 'KIT-010' },
-            { type: 'Kitchen', model: 'Onion', quantity: 50, unit: 'kg', status: 'In Stock', assignedTo: '', itemCode: 'KIT-011' },
-            { type: 'Kitchen', model: 'Chicken (with bone)', quantity: 20, unit: 'kg', status: 'In Stock', assignedTo: '', itemCode: 'KIT-020' },
-            { type: 'Kitchen', model: 'Chicken (boneless)', quantity: 20, unit: 'kg', status: 'In Stock', assignedTo: '', itemCode: 'KIT-021' },
-            { type: 'Kitchen', model: 'Tomatoes', quantity: 30, unit: 'kg', status: 'In Stock', assignedTo: '', itemCode: 'KIT-022' },
-            { type: 'Kitchen', model: 'Garlic paste', quantity: 5, unit: 'kg', status: 'In Stock', assignedTo: '', itemCode: 'KIT-023' },
-            { type: 'Kitchen', model: 'Ginger paste', quantity: 5, unit: 'kg', status: 'In Stock', assignedTo: '', itemCode: 'KIT-024' },
-            { type: 'Kitchen', model: 'Green chilies', quantity: 5, unit: 'kg', status: 'In Stock', assignedTo: '', itemCode: 'KIT-025' },
-            { type: 'Kitchen', model: 'Yogurt', quantity: 15, unit: 'kg', status: 'In Stock', assignedTo: '', itemCode: 'KIT-026' },
-            { type: 'Kitchen', model: 'Cooking oil', quantity: 50, unit: 'liters', status: 'In Stock', assignedTo: '', itemCode: 'KIT-027' },
-            { type: 'Kitchen', model: 'Red chili powder', quantity: 5, unit: 'kg', status: 'In Stock', assignedTo: '', itemCode: 'KIT-028' },
-            { type: 'Kitchen', model: 'Garam masala', quantity: 5, unit: 'kg', status: 'In Stock', assignedTo: '', itemCode: 'KIT-029' },
-        ];
-
-        const initialRecipes: Omit<Recipe, 'id'>[] = [
-            {
-                name: "Chicken Karahi",
-                ingredients: [
-                    { name: "Chicken (with bone)", quantity: 1, unit: "kg" },
-                    { name: "Tomatoes", quantity: 0.5, unit: "kg" },
-                    { name: "Onion", quantity: 0.2, unit: "kg" },
-                    { name: "Garlic paste", quantity: 0.02, unit: "kg" },
-                    { name: "Ginger paste", quantity: 0.015, unit: "kg" },
-                    { name: "Green chilies", quantity: 0.01, unit: "kg" },
-                    { name: "Yogurt", quantity: 0.1, unit: "kg" },
-                    { name: "Cooking oil", quantity: 0.05, unit: "liters" },
-                    { name: "Salt", quantity: 0.01, unit: "kg" },
-                    { name: "Red chili powder", quantity: 0.005, unit: "kg" },
-                    { name: "Garam masala", quantity: 0.003, unit: "kg" }
-                ]
-            },
-            {
-                name: "Boneless Karahi",
-                ingredients: [
-                    { name: "Chicken (boneless)", quantity: 1, unit: "kg" },
-                    { name: "Tomatoes", quantity: 0.5, unit: "kg" },
-                    { name: "Onion", quantity: 0.2, unit: "kg" },
-                    { name: "Garlic paste", quantity: 0.02, unit: "kg" },
-                    { name: "Ginger paste", quantity: 0.015, unit: "kg" },
-                    { name: "Green chilies", quantity: 0.01, unit: "kg" },
-                    { name: "Yogurt", quantity: 0.1, unit: "kg" },
-                    { name: "Cooking oil", quantity: 0.05, unit: "liters" },
-                    { name: "Salt", quantity: 0.01, unit: "kg" },
-                    { name: "Red chili powder", quantity: 0.005, unit: "kg" },
-                    { name: "Garam masala", quantity: 0.003, unit: "kg" }
-                ]
-            }
-        ];
-
-        const initialVendors: Omit<Vendor, 'id'>[] = [
-            { name: "Metro Cash & Carry", contactPerson: "Asif Khan", phone: "042-111-222-333", address: "Thokar Niaz Baig, Lahore" },
-            { name: "Al-Fatah Electronics", contactPerson: "Bilal Ahmed", phone: "042-35756666", address: "Gulberg III, Lahore" },
-            { name: "Hafeez Center Suppliers", contactPerson: "Chaudhry Sabir", phone: "0300-9876543", address: "Gulberg, Lahore" },
-            { name: "Grain Market Wholesalers", contactPerson: "Mian Tariq", phone: "0321-5554443", address: "Akbari Mandi, Lahore" }
-        ];
-
-        // --- 2. OFFLINE MODE HANDLER ---
-        const enableOfflineMode = () => {
-            if (!isMounted) return;
-            console.warn("Using Offline Demo Data (Firebase Access Denied or Config Missing)");
-            
-            // Populate state with seed data (adding fake IDs)
-            setEmployees(initialEmployees.map((e, i) => ({ ...e, id: `local-emp-${i}` } as Employee)));
-            setInventory(initialIngredients.map((e, i) => ({ ...e, id: `local-inv-${i}` } as InventoryItem)));
-            setRecipes(initialRecipes.map((e, i) => ({ ...e, id: `local-rec-${i}` } as Recipe)));
-            setVendors(initialVendors.map((e, i) => ({ ...e, id: `local-ven-${i}` } as Vendor)));
-            setLabs([{ id: 'local-lab-1', name: "SIR Lab", systems: [] }, { id: 'local-lab-2', name: "SADU Lab", systems: [] }]);
-            
-            // Users for login metadata (Admin is handled via bypass)
-            setUsers([
-                { id: 'u1', email: 'admin', password: '123', passwordChangeRequired: true },
-                { id: 'u2', email: 'ali.raza@example.com', password: 'password', passwordChangeRequired: true }
-            ]);
-
-            // Initialize empty arrays for other collections
-            setLeaveRequests([]);
-            setAttendanceRecords([]);
-            setSupplyChainRequests([]);
-            setPurchaseRequests([]);
-            setPurchaseOrders([]);
-            setPayrollHistory([]);
-            setToners([]);
-            setMrfs([]);
-        };
-
         try {
-            // --- 3. TEST FIREBASE CONNECTION ---
-            const empColl = collection(db, 'employees');
-            // Try to fetch one collection. If this fails (permission-denied), we go to catch.
-            const empSnap = await getDocs(empColl);
-
-            if (!isMounted) return;
-
-            // --- 4. SUCCESSFUL CONNECTION: PROCEED WITH DB LOGIC ---
-            
-            // Seed Employees if empty
-            if (empSnap.empty) {
-                for (const emp of initialEmployees) await addDoc(empColl, emp);
-            }
-
-            // Check/Seed Inventory
-            const invColl = collection(db, 'inventory');
-            const kitchenQ = query(invColl, where('type', '==', 'Kitchen'));
-            const kitchenSnap = await getDocs(kitchenQ);
-            if (kitchenSnap.empty) {
-                for (const ing of initialIngredients) await addDoc(invColl, ing);
-            }
-
-            // Check/Seed Recipes
-            const recColl = collection(db, 'recipes');
-            const recSnap = await getDocs(recColl);
-            if (recSnap.empty) {
-                for (const r of initialRecipes) await addDoc(recColl, r);
-            }
-
-            // Check/Seed Vendors
-            const venColl = collection(db, 'vendors');
-            const venSnap = await getDocs(venColl);
-            if (venSnap.empty) {
-                for (const v of initialVendors) await addDoc(venColl, v);
-            }
-
-            // --- 5. SETUP LISTENERS (ONLY IF CONNECTED) ---
-            unsubscribers.push(onSnapshot(collection(db, "employees"), (s) => setEmployees(s.docs.map(d => ({ ...d.data(), id: d.id } as Employee)))));
-            unsubscribers.push(onSnapshot(collection(db, "users"), (s) => setUsers(s.docs.map(d => ({ ...d.data(), id: d.id } as User)))));
-            unsubscribers.push(onSnapshot(doc(db, "app_data", "permissions"), (s) => {
-                if (s.exists()) setPermissions(s.data() as AllPermissions);
-                else setDoc(doc(db, "app_data", "permissions"), {});
+            unsubscribers.push(db.collection("employees").onSnapshot((s) => setEmployees(s.docs.map(d => ({ ...d.data(), id: d.id } as Employee)))));
+            unsubscribers.push(db.collection("users").onSnapshot((s) => setUsers(s.docs.map(d => ({ ...d.data(), id: d.id } as User)))));
+            unsubscribers.push(db.collection("app_data").doc("permissions").onSnapshot((s) => {
+                if (s.exists) setPermissions(s.data() as AllPermissions);
+                else db.collection("app_data").doc("permissions").set({});
             }));
-            unsubscribers.push(onSnapshot(collection(db, "leaveRequests"), (s) => setLeaveRequests(s.docs.map(d => ({ ...d.data(), id: d.id } as LeaveRequest)))));
-            unsubscribers.push(onSnapshot(query(collection(db, "payrollHistory"), where("date", "!=", null)), (s) => {
+            unsubscribers.push(db.collection("leaveRequests").onSnapshot((s) => setLeaveRequests(s.docs.map(d => ({ ...d.data(), id: d.id } as LeaveRequest)))));
+            unsubscribers.push(db.collection("payrollHistory").where("date", "!=", null).onSnapshot((s) => {
                 const history = s.docs.map(d => ({ ...d.data(), id: d.id } as PayrollRecord));
                 history.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
                 setPayrollHistory(history);
             }));
-            unsubscribers.push(onSnapshot(collection(db, "inventory"), (s) => setInventory(s.docs.map(d => ({ ...d.data(), id: d.id } as InventoryItem)))));
-            unsubscribers.push(onSnapshot(collection(db, "labs"), (s) => setLabs(s.docs.map(d => ({ ...d.data(), id: d.id } as Lab)))));
-            unsubscribers.push(onSnapshot(collection(db, "toners"), (s) => setToners(s.docs.map(d => ({ ...d.data(), id: d.id } as Toner)))));
-            unsubscribers.push(onSnapshot(collection(db, "mrfs"), (s) => setMrfs(s.docs.map(d => ({ ...d.data(), id: d.id } as MRF)))));
-            unsubscribers.push(onSnapshot(collection(db, "attendanceRecords"), (s) => setAttendanceRecords(s.docs.map(d => ({ ...d.data(), id: d.id } as AttendanceRecord)))));
-            unsubscribers.push(onSnapshot(collection(db, "supplyChainRequests"), (s) => setSupplyChainRequests(s.docs.map(d => ({ ...d.data(), id: d.id } as SupplyChainRequest)))));
-            unsubscribers.push(onSnapshot(collection(db, "purchaseRequests"), (s) => setPurchaseRequests(s.docs.map(d => ({ ...d.data(), id: d.id } as PurchaseRequest)))));
-            unsubscribers.push(onSnapshot(collection(db, "recipes"), (s) => setRecipes(s.docs.map(d => ({ ...d.data(), id: d.id } as Recipe)))));
-            unsubscribers.push(onSnapshot(collection(db, "vendors"), (s) => setVendors(s.docs.map(d => ({ ...d.data(), id: d.id } as Vendor)))));
-            unsubscribers.push(onSnapshot(collection(db, "purchaseOrders"), (s) => setPurchaseOrders(s.docs.map(d => ({ ...d.data(), id: d.id } as PurchaseOrder)))));
-
-        } catch (error) {
-            // --- 6. FALLBACK ON ERROR ---
-            console.warn("Firebase Connection Failed (Switching to Offline Mode):", error);
-            enableOfflineMode();
-        }
+            unsubscribers.push(db.collection("inventory").onSnapshot((s) => setInventory(s.docs.map(d => ({ ...d.data(), id: d.id } as InventoryItem)))));
+            unsubscribers.push(db.collection("labs").onSnapshot((s) => setLabs(s.docs.map(d => ({ ...d.data(), id: d.id } as Lab)))));
+            unsubscribers.push(db.collection("toners").onSnapshot((s) => setToners(s.docs.map(d => ({ ...d.data(), id: d.id } as Toner)))));
+            unsubscribers.push(db.collection("mrfs").onSnapshot((s) => setMrfs(s.docs.map(d => ({ ...d.data(), id: d.id } as MRF)))));
+            unsubscribers.push(db.collection("attendanceRecords").onSnapshot((s) => setAttendanceRecords(s.docs.map(d => ({ ...d.data(), id: d.id } as AttendanceRecord)))));
+            unsubscribers.push(db.collection("supplyChainRequests").onSnapshot((s) => setSupplyChainRequests(s.docs.map(d => ({ ...d.data(), id: d.id } as SupplyChainRequest)))));
+            unsubscribers.push(db.collection("purchaseRequests").onSnapshot((s) => setPurchaseRequests(s.docs.map(d => ({ ...d.data(), id: d.id } as PurchaseRequest)))));
+            unsubscribers.push(db.collection("recipes").onSnapshot((s) => setRecipes(s.docs.map(d => ({ ...d.data(), id: d.id } as Recipe)))));
+            unsubscribers.push(db.collection("vendors").onSnapshot((s) => setVendors(s.docs.map(d => ({ ...d.data(), id: d.id } as Vendor)))));
+            unsubscribers.push(db.collection("purchaseOrders").onSnapshot((s) => setPurchaseOrders(s.docs.map(d => ({ ...d.data(), id: d.id } as PurchaseOrder)))));
+            unsubscribers.push(db.collection("tasks").onSnapshot((s) => setTasks(s.docs.map(d => ({ ...d.data(), id: d.id } as Task)))));
+            unsubscribers.push(db.collection("messages").onSnapshot((s) => setMessages(s.docs.map(d => ({ ...d.data(), id: d.id } as ChatMessage)))));
+            unsubscribers.push(db.collection("notes").onSnapshot((s) => setNotes(s.docs.map(d => ({ ...d.data(), id: d.id } as Note)))));
+        } catch (error) { console.error("Firebase init failed", error); }
     };
-
     initializeSystem();
-
-    return () => {
-        isMounted = false;
-        unsubscribers.forEach(unsub => unsub());
-    };
+    return () => { isMounted = false; unsubscribers.forEach(unsub => unsub()); };
   }, [currentUser]); 
-
-
-  const handleLogin = async (email: string, password?: string): Promise<boolean> => {
-    if (!password) return false;
-    
-    // HARDCODED BYPASS: Allow admin access even if Firebase Auth is not configured
-    if (email === 'admin' && password === '123') {
-        setIsLoggedIn(true);
-        setCurrentUser('admin');
-        return true;
-    }
-
-    // Map 'admin' username to a valid email for Firebase Auth
-    const authEmail = email === 'admin' ? 'admin@masbot.erp' : email;
-    // For admin '123' demo password, map to Firebase compliant length if needed
-    const authPassword = (email === 'admin' && password.length < 6) ? '123456' : password;
-
-    try {
-        await signInWithEmailAndPassword(auth, authEmail, authPassword);
-        
-        // Handle Password Change Requirement
-        const q = query(collection(db, "users"), where("email", "==", email));
-        const snapshot = await getDocs(q);
-        if (!snapshot.empty) {
-            const userMeta = snapshot.docs[0].data() as User;
-            setShowPasswordChange(!!userMeta.passwordChangeRequired);
-        }
-        
-        return true;
-    } catch (error: any) {
-        // Fallback for Demo: If Admin doesn't exist in Auth, create it
-        if (error.code === 'auth/user-not-found' && email === 'admin') {
-            try {
-                // Auto-create the admin account in Firebase Auth
-                await createUserWithEmailAndPassword(auth, authEmail, authPassword);
-                
-                // Also ensure it exists in 'users' metadata collection
-                const q = query(collection(db, "users"), where("email", "==", email));
-                const snapshot = await getDocs(q);
-                if (snapshot.empty) {
-                    await addDoc(collection(db, "users"), { email: email, password: authPassword, passwordChangeRequired: true });
-                }
-                return true;
-            } catch (createErr) {
-                console.error("Failed to auto-create admin:", createErr);
-                // Last resort bypass if creation fails (e.g. weak password policy)
-                if (email === 'admin' && password === '123') {
-                     setIsLoggedIn(true);
-                     setCurrentUser('admin');
-                     return true;
-                }
-                return false;
-            }
-        }
-        console.error("Login error", error);
-        throw error;
-    }
-  };
-
-  const handleLogout = async () => {
-    await signOut(auth);
-    setIsLoggedIn(false);
-    setCurrentUser(null);
-    setSelectedModule(null);
-  };
 
   // --- Helpers ---
   const calculateProRataLeaveBalance = (joiningDate: string): LeaveBalance => {
       const join = new Date(joiningDate);
       const currentYear = new Date().getFullYear();
       const joinYear = join.getFullYear();
-      
-      const fullQuotas = {
-          annual: { total: 14, used: 0 },
-          sick: { total: 7, used: 0 },
-          casual: { total: 6, used: 0 },
-          maternity: { total: 90, used: 0 },
-          paternity: { total: 7, used: 0 },
-          alternateDayOff: { total: 50, used: 0 },
-          others: { total: 0, used: 0 }
-      };
-
-      // If joined in previous years, give full quota
+      const fullQuotas = { annual: { total: 14, used: 0 }, sick: { total: 7, used: 0 }, casual: { total: 6, used: 0 }, maternity: { total: 90, used: 0 }, paternity: { total: 7, used: 0 }, alternateDayOff: { total: 50, used: 0 }, others: { total: 0, used: 0 } };
       if (joinYear < currentYear) return fullQuotas;
-
-      // Calculate remaining months in the year (including joining month)
-      const joinMonth = join.getMonth(); // 0-11
-      const monthsRemaining = 12 - joinMonth;
-      const ratio = monthsRemaining / 12;
-
-      return {
-          annual: { total: Math.round(14 * ratio), used: 0 },
-          sick: { total: Math.round(7 * ratio), used: 0 },
-          casual: { total: Math.round(6 * ratio), used: 0 },
-          maternity: { total: 90, used: 0 }, // Usually not pro-rated
-          paternity: { total: 7, used: 0 },
-          alternateDayOff: { total: Math.round(50 * ratio), used: 0 },
-          others: { total: 0, used: 0 }
-      };
+      const joinMonth = join.getMonth();
+      const ratio = (12 - joinMonth) / 12;
+      return { annual: { total: Math.round(14 * ratio), used: 0 }, sick: { total: Math.round(7 * ratio), used: 0 }, casual: { total: Math.round(6 * ratio), used: 0 }, maternity: { total: 90, used: 0 }, paternity: { total: 7, used: 0 }, alternateDayOff: { total: Math.round(50 * ratio), used: 0 }, others: { total: 0, used: 0 } };
   };
 
-  // --- HR Handlers ---
-  const handleAddEmployee = async (employeeData: Omit<Employee, 'id'>, password: string) => {
-    let leaveBalance: LeaveBalance = {
-        annual: { total: 0, used: 0 },
-        sick: { total: 0, used: 0 },
-        casual: { total: 0, used: 0 },
-        maternity: { total: 0, used: 0 },
-        paternity: { total: 0, used: 0 },
-        alternateDayOff: { total: 0, used: 0 },
-        others: { total: 0, used: 0 }
-    };
-
-    if (employeeData.employmentType === 'Permanent') {
-        leaveBalance = calculateProRataLeaveBalance(employeeData.joiningDate);
-    }
-
-    const newEmployee = { ...employeeData, leaveBalance };
-    const empRef = await addDoc(collection(db, "employees"), newEmployee);
-    
-    // Create User Metadata (Auth creation handled separately or lazily)
-    await addDoc(collection(db, "users"), { 
-        email: employeeData.email, 
-        password: password, 
-        passwordChangeRequired: true 
-    });
-  };
-
-  const handleUpdateEmployee = async (employeeId: string, updatedData: Partial<Omit<Employee, 'id'>>) => {
-    const empRef = doc(db, 'employees', employeeId);
-    
-    // Check if status changed to Permanent
-    if (updatedData.employmentType === 'Permanent') {
-        // Calculate pro-rata leaves from TODAY if they weren't permanent before
-        // Ideally we check previous state, but calculating based on current date is a safe default for upgrades
-        const today = new Date().toISOString().split('T')[0];
-        const newBalance = calculateProRataLeaveBalance(today);
-        await updateDoc(empRef, { ...updatedData, leaveBalance: newBalance });
-    } else {
-        await updateDoc(empRef, updatedData);
-    }
-    return { success: true, message: "Employee updated successfully" };
-  };
-
-  const handleResignEmployee = async (employeeId: string) => {
-    await updateDoc(doc(db, 'employees', employeeId), { status: 'Resigned' });
-    return { success: true, message: "Employee marked as resigned." };
-  };
-
-  const handleUserPermissionsChange = async (userEmail: string, newUserPermissions: { [moduleId: string]: ModulePermissions }) => {
-    // Deep copy to ensure clean object for Firestore
-    const cleanPermissions: any = {};
-    Object.keys(newUserPermissions).forEach(modKey => {
-        cleanPermissions[modKey] = {};
-        Object.keys(newUserPermissions[modKey]).forEach(pageKey => {
-            cleanPermissions[modKey][pageKey] = { ...newUserPermissions[modKey][pageKey] };
-        });
-    });
-
-    const newAllPermissions = { ...permissions, [userEmail]: cleanPermissions };
-    await setDoc(doc(db, "app_data", "permissions"), newAllPermissions);
-  };
-
-  const handleAddLeaveRequest = async (request: Omit<LeaveRequest, 'id'>) => {
-    await addDoc(collection(db, "leaveRequests"), request);
-  };
-
-  const handleLeaveRequestAction = async (requestId: string, action: 'Approve' | 'Reject') => {
-    const reqRef = doc(db, 'leaveRequests', requestId);
-    const request = leaveRequests.find(r => r.id === requestId);
-    
-    if (action === 'Approve' && request) {
-        if (request.status === 'Pending HOD') {
-            await updateDoc(reqRef, { status: 'Pending HR' });
-        } else {
-            await updateDoc(reqRef, { status: 'Approved' });
-            
-            // Deduct from balance
-            const from = new Date(request.fromDate);
-            const to = new Date(request.toDate);
-            const diffTime = Math.abs(to.getTime() - from.getTime());
-            const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-
-            const map: { [key: string]: keyof LeaveBalance } = {
-                'Casual Leave': 'casual',
-                'Sick Leave': 'sick',
-                'Annual Leave': 'annual',
-                'Maternity Leave': 'maternity',
-                'Paternity Leave': 'paternity',
-                'Alternate Day Off': 'alternateDayOff',
-                'Others': 'others'
-            };
-            const typeKey = map[request.leaveType];
-            const empRef = doc(db, 'employees', request.employeeId);
-            
-            await updateDoc(empRef, {
-                [`leaveBalance.${typeKey}.used`]: increment(days)
-            });
+  const handleLogin = async (email: string, password?: string): Promise<boolean> => {
+    if (!password) return false;
+    if (email === 'admin' && password === '123') { setIsLoggedIn(true); setCurrentUser('admin'); return true; }
+    try {
+        await auth.signInWithEmailAndPassword(email === 'admin' ? 'admin@masbot.erp' : email, (email === 'admin' && password.length < 6) ? '123456' : password);
+        const snapshot = await db.collection("users").where("email", "==", email).get();
+        if (!snapshot.empty) { setShowPasswordChange(!!(snapshot.docs[0].data() as User).passwordChangeRequired); }
+        return true;
+    } catch (error: any) {
+        if (error.code === 'auth/user-not-found') {
+            const snapshot = await db.collection("users").where("email", "==", email).get();
+            if (!snapshot.empty && snapshot.docs[0].data().password === password) {
+                await auth.createUserWithEmailAndPassword(email === 'admin' ? 'admin@masbot.erp' : email, (email === 'admin' && password.length < 6) ? '123456' : password);
+                return true;
+            }
         }
-    } else {
-        await updateDoc(reqRef, { status: 'Rejected' });
+        throw error;
     }
   };
 
+  const handleLogout = async () => { await auth.signOut(); setIsLoggedIn(false); setCurrentUser(null); setSelectedModule(null); };
+
+  const handleAddEmployee = async (employeeData: Omit<Employee, 'id'>, password: string) => {
+    const leaveBalance = employeeData.employmentType === 'Permanent' ? calculateProRataLeaveBalance(employeeData.joiningDate) : { annual: { total: 0, used: 0 }, sick: { total: 0, used: 0 }, casual: { total: 0, used: 0 }, maternity: { total: 0, used: 0 }, paternity: { total: 0, used: 0 }, alternateDayOff: { total: 0, used: 0 }, others: { total: 0, used: 0 } };
+    const empDoc = await db.collection("employees").add({ ...employeeData, leaveBalance });
+    await db.collection("users").doc(employeeData.email).set({ email: employeeData.email, password: password, passwordChangeRequired: true, employeeId: empDoc.id });
+  };
+
+  const handleUpdateEmployee = async (employeeId: string, updatedData: Partial<Omit<Employee, 'id'>>) => { 
+      const empRef = db.collection('employees').doc(employeeId);
+      if (updatedData.employmentType === 'Permanent') {
+          await empRef.update({ ...updatedData, leaveBalance: calculateProRataLeaveBalance(new Date().toISOString().split('T')[0]) });
+      } else { await empRef.update(updatedData); }
+      return { success: true, message: "Employee updated successfully" }; 
+  };
+  const handleResignEmployee = async (id: string) => { await db.collection('employees').doc(id).update({ status: 'Resigned' }); return { success: true, message: "Employee marked as resigned." }; };
+  const handleUserPermissionsChange = async (userEmail: string, newUserPermissions: { [moduleId: string]: ModulePermissions }) => {
+    await db.collection("app_data").doc("permissions").set({ ...permissions, [userEmail]: newUserPermissions });
+  };
+  const handleAddLeaveRequest = async (r: any) => { await db.collection("leaveRequests").add(r); };
+  const handleLeaveRequestAction = async (requestId: string, action: 'Approve' | 'Reject') => {
+    const reqRef = db.collection('leaveRequests').doc(requestId);
+    const request = leaveRequests.find(r => r.id === requestId);
+    if (action === 'Approve' && request) {
+        if (request.status === 'Pending HOD') await reqRef.update({ status: 'Pending HR' });
+        else {
+            await reqRef.update({ status: 'Approved' });
+            const days = Math.ceil(Math.abs(new Date(request.toDate).getTime() - new Date(request.fromDate).getTime()) / (1000 * 60 * 60 * 24)) + 1;
+            const typeKey = { 'Casual Leave': 'casual', 'Sick Leave': 'sick', 'Annual Leave': 'annual', 'Maternity Leave': 'maternity', 'Paternity Leave': 'paternity', 'Alternate Day Off': 'alternateDayOff', 'Others': 'others' }[request.leaveType] as keyof LeaveBalance;
+            await db.collection('employees').doc(request.employeeId).update({ [`leaveBalance.${typeKey}.used`]: firebase.firestore.FieldValue.increment(days) });
+        }
+    } else { await reqRef.update({ status: 'Rejected' }); }
+  };
   const handleRunPayroll = async () => {
-      // Calculate payroll for all employees and save to history
-      const monthYear = new Date().toLocaleString('default', { month: 'long', year: 'numeric' });
-      const record: PayrollRecord = {
-          id: '', // Firestore generates
-          date: new Date().toISOString(),
-          monthYear: monthYear,
-          totalPayroll: 0,
-          totalDeductions: 0,
-          totalNetPay: 0,
-          employeeRecords: employees.map(emp => ({
-              employeeId: emp.id,
-              employeeName: `${emp.firstName} ${emp.lastName}`,
-              department: emp.department,
-              baseSalary: parseFloat(emp.salary),
-              deductions: 0, // Simplified for demo
-              netPay: parseFloat(emp.salary)
-          }))
-      };
-      
-      // Calc totals
+      const record: PayrollRecord = { id: '', date: new Date().toISOString(), monthYear: new Date().toLocaleString('default', { month: 'long', year: 'numeric' }), totalPayroll: 0, totalDeductions: 0, totalNetPay: 0, employeeRecords: employees.map(emp => ({ employeeId: emp.id, employeeName: `${emp.firstName} ${emp.lastName}`, department: emp.department, baseSalary: parseFloat(emp.salary), deductions: 0, netPay: parseFloat(emp.salary) })) };
       record.totalPayroll = record.employeeRecords.reduce((acc, curr) => acc + curr.baseSalary, 0);
       record.totalNetPay = record.employeeRecords.reduce((acc, curr) => acc + curr.netPay, 0);
-
-      await addDoc(collection(db, "payrollHistory"), record);
+      await db.collection("payrollHistory").add(record);
       return { success: true, message: "Payroll run successfully." };
   };
-
   const handleUploadAttendance = async (records: Omit<AttendanceRecord, 'id'>[]) => {
-      const batch = writeBatch(db);
-      records.forEach(rec => {
-          // Use a composite key to avoid duplicates: EmpID_Date
-          const docId = `${rec.employeeId}_${rec.date}`;
-          const ref = doc(db, 'attendanceRecords', docId);
-          batch.set(ref, rec);
-      });
+      const batch = db.batch();
+      records.forEach(rec => batch.set(db.collection('attendanceRecords').doc(`${rec.employeeId}_${rec.date}`), rec));
       await batch.commit();
       return { success: true, message: "Attendance records uploaded." };
   };
-
-  // --- Inventory Handlers ---
-  const handleAddNewAsset = async (assetsData: Omit<InventoryItem, 'id'>[]) => {
-      const batch = writeBatch(db);
-      assetsData.forEach(asset => {
-          const ref = doc(collection(db, 'inventory'));
-          batch.set(ref, asset);
-      });
-      await batch.commit();
-  };
-
-  const handleUpdateAsset = async (asset: InventoryItem) => {
-      const { id, ...data } = asset;
-      await updateDoc(doc(db, 'inventory', id), data);
-  };
-
-  const handleDeleteAsset = async (assetId: string) => {
-      await deleteDoc(doc(db, 'inventory', assetId));
-  };
-
-  const handleAddSystem = async (labId: string, newSystemData: Omit<LabSystem, 'id'>) => {
-      const labRef = doc(db, 'labs', labId);
-      const lab = labs.find(l => l.id === labId);
-      if (!lab) return;
-      
-      const newSystem = { ...newSystemData, id: `SYS-${Date.now()}` };
-      const updatedSystems = [...lab.systems, newSystem];
-      await updateDoc(labRef, { systems: updatedSystems });
-  };
-
-  const handleUpdateSystem = async (labId: string, updatedSystem: LabSystem) => {
-      const labRef = doc(db, 'labs', labId);
-      const lab = labs.find(l => l.id === labId);
-      if (!lab) return;
-
-      const updatedSystems = lab.systems.map(s => s.id === updatedSystem.id ? updatedSystem : s);
-      await updateDoc(labRef, { systems: updatedSystems });
-  };
-
-  const handleDeleteSystem = async (labId: string, systemId: string) => {
-      const labRef = doc(db, 'labs', labId);
-      const lab = labs.find(l => l.id === labId);
-      if (!lab) return;
-
-      const updatedSystems = lab.systems.filter(s => s.id !== systemId);
-      await updateDoc(labRef, { systems: updatedSystems });
-  };
-
+  const handleAddNewAsset = async (a: any) => { const batch = db.batch(); a.forEach((asset: any) => batch.set(db.collection('inventory').doc(), asset)); await batch.commit(); };
+  const handleUpdateAsset = async (asset: InventoryItem) => { const { id, ...data } = asset; await db.collection('inventory').doc(id).update(data); };
+  const handleDeleteAsset = async (id: string) => { await db.collection('inventory').doc(id).delete(); };
+  const handleAddSystem = async (labId: string, newSystemData: Omit<LabSystem, 'id'>) => { const lab = labs.find(l => l.id === labId); if (lab) await db.collection('labs').doc(labId).update({ systems: [...lab.systems, { ...newSystemData, id: `SYS-${Date.now()}` }] }); };
+  const handleUpdateSystem = async (labId: string, updatedSystem: LabSystem) => { const lab = labs.find(l => l.id === labId); if (lab) await db.collection('labs').doc(labId).update({ systems: lab.systems.map(s => s.id === updatedSystem.id ? updatedSystem : s) }); };
+  const handleDeleteSystem = async (labId: string, systemId: string) => { const lab = labs.find(l => l.id === labId); if (lab) await db.collection('labs').doc(labId).update({ systems: lab.systems.filter(s => s.id !== systemId) }); };
   const handleSaveTonerModel = async (data: any) => {
-      // Check if model exists
       const existing = toners.find(t => t.model === data.model);
-      if (existing) {
-          // Update quantities logic would be more complex in real app, simplified here
-          await updateDoc(doc(db, 'toners', existing.id), { 
-              quantity: data.filledQuantity + data.emptyQuantity,
-              compatiblePrinters: data.compatiblePrinters 
-          });
-      } else {
-          // Create separate docs for Filled and Empty to track status
-          if (data.filledQuantity > 0) {
-             await addDoc(collection(db, 'toners'), { model: data.model, compatiblePrinters: data.compatiblePrinters, quantity: data.filledQuantity, status: 'Filled' });
-          }
-          if (data.emptyQuantity > 0) {
-             await addDoc(collection(db, 'toners'), { model: data.model, compatiblePrinters: data.compatiblePrinters, quantity: data.emptyQuantity, status: 'Empty' });
-          }
+      if (existing) await db.collection('toners').doc(existing.id).update({ quantity: data.filledQuantity + data.emptyQuantity, compatiblePrinters: data.compatiblePrinters }); 
+      else {
+          if (data.filledQuantity > 0) await db.collection('toners').add({ model: data.model, compatiblePrinters: data.compatiblePrinters, quantity: data.filledQuantity, status: 'Filled' });
+          if (data.emptyQuantity > 0) await db.collection('toners').add({ model: data.model, compatiblePrinters: data.compatiblePrinters, quantity: data.emptyQuantity, status: 'Empty' });
       }
   };
-
-  const onDeleteTonerModel = async (modelName: string) => {
-      const batch = writeBatch(db);
-      const targets = toners.filter(t => t.model === modelName);
-      targets.forEach(t => batch.delete(doc(db, 'toners', t.id)));
-      await batch.commit();
-  };
-
-  const onMarkTonerEmpty = async (id: string) => {
-      // Simplified: Decrement filled, increment empty (would require finding the empty doc counterpart)
-      alert("Toner status update logic");
-  };
-  const onMarkTonerFilled = async (id: string) => { alert("Toner status update logic"); };
-
-  const handleAddNewMRF = async (mrf: Omit<MRF, 'id'>) => {
-      await addDoc(collection(db, 'mrfs'), mrf);
-  };
-  const handleUpdateMRF = async (mrf: MRF) => {
-      const { id, ...data } = mrf;
-      await updateDoc(doc(db, 'mrfs', id), data);
-  };
-  const handleDeleteMRF = async (id: string) => {
-      await deleteDoc(doc(db, 'mrfs', id));
-  };
-
-  const handleUpdateKitchenStock = async (items: { id: string, newQuantity: number }[]) => {
-      const batch = writeBatch(db);
-      items.forEach(item => {
-          const ref = doc(db, 'inventory', item.id);
-          batch.update(ref, { quantity: item.newQuantity });
-      });
-      await batch.commit();
-  };
-
-  // --- Supply Chain Handlers ---
-  const handleCreateSCRequest = async (req: Omit<SupplyChainRequest, 'id'>) => {
-      // Default to Account Manager Approval first instead of CEO
-      const newReq = { ...req, status: 'Pending Account Manager' as const };
-      await addDoc(collection(db, 'supplyChainRequests'), newReq);
-  };
-
+  const onDeleteTonerModel = async (modelName: string) => { const batch = db.batch(); toners.filter(t => t.model === modelName).forEach(t => batch.delete(db.collection('toners').doc(t.id))); await batch.commit(); };
+  const handleAddNewMRF = async (m: any) => { await db.collection('mrfs').add(m); };
+  const handleUpdateMRF = async (mrf: MRF) => { const { id, ...data } = mrf; await db.collection('mrfs').doc(id).update(data); };
+  const handleDeleteMRF = async (id: string) => { await db.collection('mrfs').doc(id).delete(); };
+  const handleUpdateKitchenStock = async (items: { id: string, newQuantity: number }[]) => { const batch = db.batch(); items.forEach(item => batch.update(db.collection('inventory').doc(item.id), { quantity: item.newQuantity })); await batch.commit(); };
+  const handleCreateSCRequest = async (req: Omit<SupplyChainRequest, 'id'>) => { await db.collection('supplyChainRequests').add({ ...req, status: 'Pending Account Manager' }); };
   const handleActionRequest = async (id: string, action: 'Approve' | 'Reject', reason?: string) => {
       const request = supplyChainRequests.find(r => r.id === id);
-      let newStatus = 'Pending Store';
-
-      if (action === 'Approve') {
-          // Logic: If request originated from 'Store' (restocking), it skips "Pending Store" (issue) and goes to "Forwarded to Purchase" (buy).
-          if (request?.department === 'Store') {
-              newStatus = 'Forwarded to Purchase';
-          } else {
-              newStatus = 'Pending Store';
-          }
-      } else {
-          newStatus = 'Rejected';
-      }
-
-      const updates: any = { 
-          status: newStatus,
-          approvalDate: new Date().toISOString()
-      };
+      const updates: any = { status: action === 'Approve' ? (request?.department === 'Store' ? 'Forwarded to Purchase' : 'Pending Store') : 'Rejected', approvalDate: new Date().toISOString() };
       if (reason) updates.rejectionReason = reason;
-      await updateDoc(doc(db, 'supplyChainRequests', id), updates);
+      await db.collection('supplyChainRequests').doc(id).update(updates);
   };
 
+  // --- CRITICAL FIX: handleIssueRequest ---
   const handleIssueRequest = async (id: string) => {
-      const request = supplyChainRequests.find(r => r.id === id);
-      if (!request) return;
-
-      const batch = writeBatch(db);
+      const request = supplyChainRequests.find(r => r.id === id); 
+      if (!request) throw new Error("Request not found");
       
-      // Update Request Status
-      const reqRef = doc(db, 'supplyChainRequests', id);
+      const batch = db.batch();
+      const reqRef = db.collection('supplyChainRequests').doc(id);
+      
+      // Update request status
       batch.update(reqRef, { status: 'Issued', issuedDate: new Date().toISOString() });
-
-      // Deduct Stock
-      request.items.forEach(item => {
-          // Only deduct stock if inventoryId is present and valid
-          if (item.inventoryId && item.inventoryId.trim() !== '') {
-              const invRef = doc(db, 'inventory', item.inventoryId);
-              batch.update(invRef, { quantity: increment(-item.quantityRequested) });
-          }
-      });
-
-      await batch.commit();
-  };
-
-  const handleForwardToPurchase = async (id: string) => {
-      await updateDoc(doc(db, 'supplyChainRequests', id), { status: 'Forwarded to Purchase' });
-  };
-
-  const handleCreatePurchaseRequest = async (req: Omit<PurchaseRequest, 'id'>) => {
-      await addDoc(collection(db, 'purchaseRequests'), req);
-  };
-
-  const handleCreatePO = async (po: Omit<PurchaseOrder, 'id'>) => {
-      // Default new POs to pending account manager
-      const newPO = { ...po, status: 'Pending Account Manager' as const };
-      await addDoc(collection(db, 'purchaseOrders'), newPO);
-  };
-
-  const handleUpdatePO = async (poId: string, updatedData: Partial<Omit<PurchaseOrder, 'id'>>) => {
-      await updateDoc(doc(db, 'purchaseOrders', poId), updatedData);
-  };
-
-  const handleDeletePO = async (poId: string) => {
-      await deleteDoc(doc(db, 'purchaseOrders', poId));
-  };
-
-  const handlePOAction = async (poId: string, action: 'Approve' | 'Reject') => {
-      await updateDoc(doc(db, 'purchaseOrders', poId), { status: action === 'Approve' ? 'Approved' : 'Rejected' });
-  };
-
-  const handleGRN = async (poId: string, receivedData: { grnNumber: string, remarks: string }) => {
-      const po = purchaseOrders.find(p => p.id === poId);
-      if (!po) return;
-
-      const batch = writeBatch(db);
       
-      // Update PO
-      const poRef = doc(db, 'purchaseOrders', poId);
-      batch.update(poRef, { 
-          status: 'Received', 
-          grnNumber: receivedData.grnNumber,
-          grnRemarks: receivedData.remarks,
-          grnDate: new Date().toISOString()
+      // Update inventory quantities
+      request.items.forEach(item => { 
+          if (item.inventoryId && item.inventoryId.trim() !== '') { 
+              const invRef = db.collection('inventory').doc(item.inventoryId); 
+              // Using negative quantity to decrement
+              batch.update(invRef, { quantity: firebase.firestore.FieldValue.increment(-item.quantityRequested) }); 
+          } 
       });
+      
+      await batch.commit();
+      // FIX: Changed return to match expected Promise<void> type in SupplyChainDashboardPage.
+      return;
+  };
 
-      // Add Stock
-      po.items.forEach(item => {
-          if (item.inventoryId) {
-              const invRef = doc(db, 'inventory', item.inventoryId);
-              batch.update(invRef, { quantity: increment(item.quantity) });
-          }
-      });
-
-      // Reset original request if linked
-      if (po.originalRequestId) {
-          const reqRef = doc(db, 'supplyChainRequests', po.originalRequestId);
-          batch.update(reqRef, { status: 'Pending Store' }); // Back to Store for issuance
-      }
-
+  const handleForwardToPurchase = async (id: string) => { await db.collection('supplyChainRequests').doc(id).update({ status: 'Forwarded to Purchase' }); };
+  const handleCreatePurchaseRequest = async (r: any) => { await db.collection('purchaseRequests').add(r); };
+  const handleCreatePO = async (po: Omit<PurchaseOrder, 'id'>) => { await db.collection('purchaseOrders').add({ ...po, status: 'Pending Account Manager' }); };
+  const handleUpdatePO = async (id: string, u: any) => { await db.collection('purchaseOrders').doc(id).update(u); };
+  const handleDeletePO = async (id: string) => { await db.collection('purchaseOrders').doc(id).delete(); };
+  const handlePOAction = async (id: string, a: any) => { await db.collection('purchaseOrders').doc(id).update({ status: a === 'Approve' ? 'Approved' : 'Rejected' }); };
+  const handleGRN = async (id: string, d: { grnNumber: string, remarks: string }) => {
+      const po = purchaseOrders.find(p => p.id === id); if (!po) return;
+      const batch = db.batch();
+      batch.update(db.collection('purchaseOrders').doc(id), { status: 'Received', grnNumber: d.grnNumber, grnRemarks: d.remarks, grnDate: new Date().toISOString() });
+      po.items.forEach(item => { if (item.inventoryId) batch.update(db.collection('inventory').doc(item.inventoryId), { quantity: firebase.firestore.FieldValue.increment(item.quantity) }); });
+      if (po.originalRequestId) batch.update(db.collection('supplyChainRequests').doc(po.originalRequestId), { status: 'Pending Store' });
       await batch.commit();
   };
+  const handleAddRecipe = async (r: any) => { await db.collection('recipes').add(r); };
 
-  const handleAddRecipe = async (recipe: Omit<Recipe, 'id'>) => {
-      await addDoc(collection(db, 'recipes'), recipe);
+  const handleCreateTask = async (taskData: Omit<Task, 'id'>) => { await db.collection('tasks').add({ ...taskData, history: [{ action: 'Created', by: currentUser || 'Unknown', timestamp: new Date().toISOString(), details: `Task created with status ${taskData.status}` }] }); };
+  const handleTaskWorkflowAction = async (taskId: string, newStatus: TaskStatus, action: string, remarks?: string) => {
+      const timestamp = new Date().toISOString();
+      const updateData: any = { status: newStatus, history: firebase.firestore.FieldValue.arrayUnion({ action, by: currentUser || 'Unknown', timestamp, details: remarks ? `${action}: ${remarks}` : `Status changed to ${newStatus}` }) };
+      if (remarks) { if (newStatus === 'Completed - Pending Review') { updateData.completionRemarks = remarks; updateData.completedDate = timestamp; } else if (newStatus === 'Reopened') updateData.rejectionRemarks = remarks; }
+      if (newStatus === 'Closed') updateData.completedDate = timestamp;
+      await db.collection('tasks').doc(taskId).update(updateData);
   };
+  const handleDeleteTask = async (taskId: string) => { await db.collection('tasks').doc(taskId).delete(); };
+  const handleSendMessage = async (msg: Omit<ChatMessage, 'id'>) => { await db.collection('messages').add(msg); };
+  const handleAddNote = async (note: Omit<Note, 'id'>) => { await db.collection('notes').add(note); };
+  const handleDeleteNote = async (id: string) => { await db.collection('notes').doc(id).delete(); };
 
-  // --- Password Update ---
   const handleUpdatePassword = async (newPassword: string) => {
-      // In a real app with Firebase Auth, you would use updatePassword(auth.currentUser, newPassword)
-      // For this demo structure where passwords are also stored in Firestore 'users' collection:
-      if (!currentUser) return { success: false, message: "No user" };
-      
-      const q = query(collection(db, "users"), where("email", "==", currentUser === 'admin' ? 'admin' : currentUser));
-      const snapshot = await getDocs(q);
-      
-      if (!snapshot.empty) {
-          const userDoc = snapshot.docs[0];
-          await updateDoc(doc(db, "users", userDoc.id), { password: newPassword, passwordChangeRequired: false });
-          setShowPasswordChange(false);
-          return { success: true, message: "Password updated" };
-      }
+      const q = await db.collection("users").where("email", "==", currentUser === 'admin' ? 'admin' : currentUser).get();
+      if (!q.empty) { await db.collection("users").doc(q.docs[0].id).update({ password: newPassword, passwordChangeRequired: false }); setShowPasswordChange(false); return { success: true, message: "Password updated" }; }
       return { success: false, message: "User record not found" };
   };
 
-  // --- Calculate Permissions ---
   const accessibleModules = React.useMemo(() => {
-      if (currentUser === 'admin') return ['hr', 'inventory_management', 'supply_chain', 'finance', 'student', 'website'];
+      if (currentUser === 'admin') return ['hr', 'inventory_management', 'supply_chain', 'finance', 'student', 'website', 'task_manager'];
       if (!currentUser || !permissions[currentUser]) return [];
-      
-      return Object.keys(permissions[currentUser]).filter(moduleId => {
-          const modPerms = permissions[currentUser][moduleId];
-          return Object.values(modPerms).some((page: any) => page.view);
-      });
+      return Object.keys(permissions[currentUser]).filter(moduleId => Object.values(permissions[currentUser][moduleId]).some((page: any) => page.view));
   }, [currentUser, permissions]);
 
-  // --- Render ---
-  if (loading) {
-      return <div className="h-screen flex items-center justify-center bg-slate-50 text-slate-500">Loading ERP System...</div>;
-  }
-
-  if (!isLoggedIn) {
-    return <LoginPage onLogin={handleLogin} />;
-  }
-
-  if (showPasswordChange) {
-      return <PasswordChangePage onUpdatePassword={handleUpdatePassword} onSkip={() => setShowPasswordChange(false)} />;
-  }
+  if (loading) return <div className="h-screen flex items-center justify-center bg-slate-50 text-slate-500">Loading ERP System...</div>;
+  if (!isLoggedIn) return <LoginPage onLogin={handleLogin} />;
+  if (showPasswordChange) return <PasswordChangePage onUpdatePassword={handleUpdatePassword} onSkip={() => setShowPasswordChange(false)} />;
 
   if (selectedModule) {
     switch (selectedModule) {
-      case 'hr':
-        return (
-          <HrDashboardPage 
-            onBack={() => setSelectedModule(null)}
-            employees={employees}
-            users={users}
-            onAddEmployee={handleAddEmployee}
-            onLogout={handleLogout}
-            allPermissions={permissions}
-            onUserPermissionsChange={handleUserPermissionsChange}
-            currentUserEmail={currentUser || ''}
-            leaveRequests={leaveRequests}
-            onAddLeaveRequest={handleAddLeaveRequest}
-            onLeaveRequestAction={handleLeaveRequestAction}
-            onResignEmployee={handleResignEmployee}
-            payrollHistory={payrollHistory}
-            onRunPayroll={handleRunPayroll}
-            onUpdateEmployee={handleUpdateEmployee}
-            attendanceRecords={attendanceRecords}
-            onUploadAttendance={handleUploadAttendance}
-          />
-        );
-      case 'inventory_management':
-        return (
-          <InventoryDashboardPage 
-            onBack={() => setSelectedModule(null)} 
-            onLogout={handleLogout}
-            currentUserEmail={currentUser || ''}
-            permissions={permissions[currentUser || '']?.['inventory_management']}
-            inventory={inventory}
-            employees={employees}
-            labs={labs}
-            toners={toners}
-            mrfs={mrfs}
-            recipes={recipes}
-            onAddNewAsset={handleAddNewAsset}
-            onUpdateAsset={handleUpdateAsset}
-            onDeleteAsset={handleDeleteAsset}
-            onResignEmployee={() => {}} // Implemented elsewhere
-            onAddSystem={handleAddSystem}
-            onUpdateSystem={handleUpdateSystem}
-            onDeleteSystem={handleDeleteSystem}
-            onSaveTonerModel={handleSaveTonerModel}
-            onDeleteTonerModel={onDeleteTonerModel}
-            onMarkTonerEmpty={onMarkTonerEmpty}
-            onMarkTonerFilled={onMarkTonerFilled}
-            onAddNewMRF={handleAddNewMRF}
-            onUpdateMRF={handleUpdateMRF}
-            onDeleteMRF={handleDeleteMRF}
-            onUpdateKitchenStock={handleUpdateKitchenStock}
-            onCreateSCRequest={handleCreateSCRequest}
-          />
-        );
-      case 'supply_chain':
-        return (
-            <SupplyChainDashboardPage 
-                onBack={() => setSelectedModule(null)}
-                onLogout={handleLogout}
-                currentUserEmail={currentUser || ''}
-                inventory={inventory}
-                employees={employees}
-                requests={supplyChainRequests}
-                purchaseRequests={purchaseRequests}
-                purchaseOrders={purchaseOrders}
-                recipes={recipes}
-                vendors={vendors}
-                onCreateRequest={handleCreateSCRequest}
-                onActionRequest={handleActionRequest}
-                onIssueRequest={handleIssueRequest}
-                onForwardToPurchase={handleForwardToPurchase}
-                onCreatePurchaseRequest={handleCreatePurchaseRequest}
-                onCreatePO={handleCreatePO}
-                onUpdatePO={handleUpdatePO}
-                onDeletePO={handleDeletePO}
-                onPOAction={handlePOAction}
-                onGRN={handleGRN}
-                onAddNewAsset={handleAddNewAsset}
-                onUpdateAsset={handleUpdateAsset}
-                onDeleteAsset={handleDeleteAsset}
-            />
-        );
-      default:
-        return (
-            <div className="flex h-screen items-center justify-center flex-col gap-4">
-                <p>Module under construction</p>
-                <button onClick={() => setSelectedModule(null)} className="text-blue-500 underline">Go Back</button>
-            </div>
-        );
+      case 'hr': return <HrDashboardPage onBack={() => setSelectedModule(null)} employees={employees} users={users} onAddEmployee={handleAddEmployee} onLogout={handleLogout} allPermissions={permissions} onUserPermissionsChange={handleUserPermissionsChange} currentUserEmail={currentUser || ''} leaveRequests={leaveRequests} onAddLeaveRequest={handleAddLeaveRequest} onLeaveRequestAction={handleLeaveRequestAction} onResignEmployee={handleResignEmployee} payrollHistory={payrollHistory} onRunPayroll={handleRunPayroll} onUpdateEmployee={handleUpdateEmployee} attendanceRecords={attendanceRecords} onUploadAttendance={handleUploadAttendance} />;
+      case 'inventory_management': return <InventoryDashboardPage onBack={() => setSelectedModule(null)} onLogout={handleLogout} currentUserEmail={currentUser || ''} permissions={permissions[currentUser || '']?.['inventory_management']} inventory={inventory} employees={employees} labs={labs} toners={toners} mrfs={mrfs} recipes={recipes} onAddNewAsset={handleAddNewAsset} onUpdateAsset={handleUpdateAsset} onDeleteAsset={handleDeleteAsset} onResignEmployee={() => {}} onAddSystem={handleAddSystem} onUpdateSystem={handleUpdateSystem} onDeleteSystem={handleDeleteSystem} onSaveTonerModel={handleSaveTonerModel} onDeleteTonerModel={onDeleteTonerModel} onMarkTonerEmpty={()=>{}} onMarkTonerFilled={()=>{}} onAddNewMRF={handleAddNewMRF} onUpdateMRF={handleUpdateMRF} onDeleteMRF={handleDeleteMRF} onUpdateKitchenStock={handleUpdateKitchenStock} onCreateSCRequest={handleCreateSCRequest} />;
+      case 'supply_chain': return <SupplyChainDashboardPage onBack={() => setSelectedModule(null)} onLogout={handleLogout} currentUserEmail={currentUser || ''} inventory={inventory} employees={employees} requests={supplyChainRequests} purchaseRequests={purchaseRequests} purchaseOrders={purchaseOrders} recipes={recipes} vendors={vendors} onCreateRequest={handleCreateSCRequest} onActionRequest={handleActionRequest} onIssueRequest={handleIssueRequest} onForwardToPurchase={handleForwardToPurchase} onCreatePurchaseRequest={handleCreatePurchaseRequest} onCreatePO={handleCreatePO} onUpdatePO={handleUpdatePO} onDeletePO={handleDeletePO} onPOAction={handlePOAction} onGRN={handleGRN} onAddNewAsset={handleAddNewAsset} onUpdateAsset={handleUpdateAsset} onDeleteAsset={handleDeleteAsset} />;
+      case 'task_manager': return <TaskManagerPage onBack={() => setSelectedModule(null)} onLogout={handleLogout} currentUserEmail={currentUser || ''} tasks={tasks} employees={employees} onCreateTask={handleCreateTask} onTaskWorkflowAction={handleTaskWorkflowAction} onDeleteTask={handleDeleteTask} messages={messages} onSendMessage={handleSendMessage} notes={notes} onAddNote={handleAddNote} onDeleteNote={handleDeleteNote} />;
+      default: return <div className="flex h-screen items-center justify-center flex-col gap-4"><p>Module under construction</p><button onClick={() => setSelectedModule(null)} className="text-blue-500 underline">Go Back</button></div>;
     }
   }
 
-  // Determine Dashboard View based on Role
   const currentEmployee = employees.find(e => e.email === currentUser);
-  const isRegularEmployee = currentEmployee && currentEmployee.role === 'Employee' && currentUser !== 'admin';
-
-  if (isRegularEmployee) {
-      return (
-          <EmployeeDashboard 
-            employee={currentEmployee}
-            onModuleSelect={setSelectedModule}
-            onLogout={handleLogout}
-            accessibleModules={accessibleModules}
-          />
-      );
-  }
-
-  return (
-    <DashboardPage 
-        onModuleSelect={setSelectedModule} 
-        onLogout={handleLogout} 
-        accessibleModules={currentUser === 'admin' ? undefined : accessibleModules}
-    />
-  );
+  if (currentEmployee && currentEmployee.role === 'Employee' && currentUser !== 'admin') return <EmployeeDashboard employee={currentEmployee} onModuleSelect={setSelectedModule} onLogout={handleLogout} accessibleModules={accessibleModules} />;
+  return <DashboardPage onModuleSelect={setSelectedModule} onLogout={handleLogout} accessibleModules={currentUser === 'admin' ? undefined : accessibleModules} />;
 };
 
 export default App;
-

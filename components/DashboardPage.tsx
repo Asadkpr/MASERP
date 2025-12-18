@@ -7,6 +7,7 @@ import { SupplyChainIcon } from './icons/SupplyChainIcon';
 import { FinanceIcon } from './icons/FinanceIcon';
 import { StudentIcon } from './icons/StudentIcon';
 import { WebsiteIcon } from './icons/WebsiteIcon';
+import { TaskIcon } from './icons/TaskIcon';
 import ModuleCard from './ModuleCard';
 import { LogoutIcon } from './icons/LogoutIcon';
 
@@ -35,6 +36,12 @@ export const modules: Module[] = [
     icon: <SupplyChainIcon className="w-12 h-12" />,
     title: 'Supply Chain Module',
     description: 'Manage procurement, logistics, and supplier relations.',
+  },
+  {
+    id: 'task_manager',
+    icon: <TaskIcon className="w-12 h-12" />,
+    title: 'Task Manager',
+    description: 'Assign, track, and complete tasks with automated workflows.',
   },
   {
     id: 'finance',

@@ -16,6 +16,7 @@ const modules = [
   { id: 'hr', name: 'HR Module' },
   { id: 'inventory_management', name: 'Inventory Management' },
   { id: 'supply_chain', name: 'Supply Chain Module' },
+  { id: 'task_manager', name: 'Task Manager' },
   { id: 'finance', name: 'Finance Module' },
   { id: 'student', name: 'Student Module' },
   { id: 'website', name: 'Website & Portals' },

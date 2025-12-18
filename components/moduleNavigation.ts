@@ -1,9 +1,4 @@
 
-
-
-
-
-
 import type { SidebarLink } from '../types';
 import { DashboardIcon } from './icons/DashboardIcon';
 import { EmployeesIcon } from './icons/EmployeesIcon';
@@ -27,6 +22,11 @@ import { LabIcon } from './icons/LabIcon';
 import { PrinterIcon } from './icons/PrinterIcon';
 import { MRFIcon } from './icons/MRFIcon';
 import { KitchenIcon } from './icons/KitchenIcon';
+import { TaskIcon } from './icons/TaskIcon';
+import { ChatIcon } from './icons/ChatIcon';
+import { CalendarIcon } from './icons/CalendarIcon';
+import { AnalyticsIcon } from './icons/AnalyticsIcon';
+import { NoteIcon } from './icons/NoteIcon';
 
 // HR Module Links
 export const hrMainLinks: SidebarLink[] = [
@@ -113,6 +113,15 @@ export const websitePages: SidebarLink[] = [
     { id: 'admin_dash', label: 'Admin Dashboard', icon: SettingsIcon },
 ];
 
+// Task Manager Module Links
+export const taskManagerPages: SidebarLink[] = [
+    { id: 'task_dashboard', label: 'Task Board', icon: TaskIcon },
+    { id: 'task_calendar', label: 'Calendar', icon: CalendarIcon },
+    { id: 'task_chat', label: 'Chat & Discussions', icon: ChatIcon },
+    { id: 'task_analytics', label: 'Team Analytics', icon: AnalyticsIcon },
+    { id: 'task_notes', label: 'My Notes', icon: NoteIcon },
+];
+
 
 export const modulePages: { [key: string]: SidebarLink[] } = {
   hr: hrPages,
@@ -121,4 +130,5 @@ export const modulePages: { [key: string]: SidebarLink[] } = {
   finance: financePages,
   student: studentPages,
   website: websitePages,
+  task_manager: taskManagerPages,
 };

@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { MasbotLogo } from './icons/MasbotLogo';
+import { db } from './firebase-config';
 
 interface LoginPageProps {
   onLogin: (email: string, password?: string) => Promise<boolean>;
@@ -11,6 +12,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,8 +35,63 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
     }
   };
 
+  const handleResetDatabase = async () => {
+      if (!window.confirm("WARNING: This will PERMANENTLY DELETE ALL DATA (Employees, Inventory, Orders, etc.).\n\nAre you sure you want to completely wipe the system to start fresh?")) {
+          return;
+      }
+      
+      const confirmText = prompt("Type 'DELETE' to confirm wiping the database:");
+      if (confirmText !== 'DELETE') return;
+
+      setIsResetting(true);
+      try {
+          const collections = [
+              'employees', 
+              'users', 
+              'inventory', 
+              'leaveRequests', 
+              'payrollHistory', 
+              'labs', 
+              'toners', 
+              'mrfs', 
+              'attendanceRecords', 
+              'supplyChainRequests', 
+              'purchaseRequests', 
+              'purchaseOrders', 
+              'recipes', 
+              'vendors'
+          ];
+
+          for (const colName of collections) {
+              const colRef = db.collection(colName);
+              const snapshot = await colRef.get();
+              if (snapshot.empty) continue;
+
+              // Delete in batches of 500 (Firestore limit)
+              const batch = db.batch();
+              let count = 0;
+              
+              for (const document of snapshot.docs) {
+                  batch.delete(db.collection(colName).doc(document.id));
+                  count++;
+              }
+              await batch.commit();
+              console.log(`Deleted collection: ${colName}`);
+          }
+
+          alert("System Reset Successful. All data has been deleted.\nYou can now login as 'admin' / '123' to start fresh.");
+          window.location.reload();
+
+      } catch (err: any) {
+          console.error(err);
+          alert("Error resetting database: " + err.message);
+      } finally {
+          setIsResetting(false);
+      }
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4 relative">
       <div className="bg-white p-8 md:p-12 rounded-2xl shadow-lg w-full max-w-md transform transition-all duration-300 border-t-4 border-purple-900">
         <div className="flex flex-col items-center mb-8">
           <MasbotLogo className="h-20 w-auto mb-4" />
@@ -82,6 +139,17 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
             {loading ? 'Logging in...' : 'Login'}
           </button>
         </form>
+      </div>
+
+      {/* Developer Utility to Clear Database */}
+      <div className="absolute bottom-4 right-4">
+          <button 
+            onClick={handleResetDatabase}
+            disabled={isResetting}
+            className="text-xs text-red-300 hover:text-red-600 underline transition-colors"
+          >
+            {isResetting ? 'Wiping Data...' : 'Reset System Data (Danger)'}
+          </button>
       </div>
     </div>
   );
