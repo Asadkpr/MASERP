@@ -88,18 +88,21 @@ const App: React.FC = () => {
         if (user.email === 'admin@masbot.erp') setCurrentUser('admin');
         else setCurrentUser(user.email);
       } else {
-        if (!currentUser) { setIsLoggedIn(false); setCurrentUser(null); setSelectedModule(null); }
+        // Only reset if we are definitely not logged in via custom firestore flow
+        if (!isLoggedIn) {
+          setCurrentUser(null);
+          setSelectedModule(null);
+        }
       }
       setLoading(false);
     });
     return unsubscribe;
-  }, []);
+  }, [isLoggedIn]);
 
   // --- Firebase Data Listeners ---
   useEffect(() => {
     if (!currentUser) { setEmployees([]); setUsers([]); return; }
     let unsubscribers: (() => void)[] = [];
-    let isMounted = true;
     const initializeSystem = async () => {
         try {
             unsubscribers.push(db.collection("employees").onSnapshot((s) => setEmployees(s.docs.map(d => ({ ...d.data(), id: d.id } as Employee)))));
@@ -130,7 +133,7 @@ const App: React.FC = () => {
         } catch (error) { console.error("Firebase init failed", error); }
     };
     initializeSystem();
-    return () => { isMounted = false; unsubscribers.forEach(unsub => unsub()); };
+    return () => { unsubscribers.forEach(unsub => unsub()); };
   }, [currentUser]); 
 
   // --- Helpers ---
@@ -147,25 +150,65 @@ const App: React.FC = () => {
 
   const handleLogin = async (email: string, password?: string): Promise<boolean> => {
     if (!password) return false;
-    if (email === 'admin' && password === '123') { setIsLoggedIn(true); setCurrentUser('admin'); return true; }
-    try {
-        await auth.signInWithEmailAndPassword(email === 'admin' ? 'admin@masbot.erp' : email, (email === 'admin' && password.length < 6) ? '123456' : password);
-        const snapshot = await db.collection("users").where("email", "==", email).get();
-        if (!snapshot.empty) { setShowPasswordChange(!!(snapshot.docs[0].data() as User).passwordChangeRequired); }
+    
+    // 1. Hardcoded admin check
+    if (email === 'admin' && password === '123') {
+        setIsLoggedIn(true);
+        setCurrentUser('admin');
         return true;
-    } catch (error: any) {
-        if (error.code === 'auth/user-not-found') {
-            const snapshot = await db.collection("users").where("email", "==", email).get();
-            if (!snapshot.empty && snapshot.docs[0].data().password === password) {
-                await auth.createUserWithEmailAndPassword(email === 'admin' ? 'admin@masbot.erp' : email, (email === 'admin' && password.length < 6) ? '123456' : password);
+    }
+
+    try {
+        // 2.Source of Truth: Verify against Firestore "users" collection first
+        // This bypasses Firebase Auth service configuration issues
+        const snapshot = await db.collection("users").where("email", "==", email).get();
+        
+        if (!snapshot.empty) {
+            const userData = snapshot.docs[0].data() as User;
+            if (userData.password === password) {
+                // Successful database verification
+                setIsLoggedIn(true);
+                setCurrentUser(email);
+                setShowPasswordChange(!!userData.passwordChangeRequired);
+                
+                // Optional: Attempt Firebase Auth sync in background if available
+                const authEmail = email.includes('@') ? email : `${email}@masbot.erp`;
+                try {
+                    await auth.signInWithEmailAndPassword(authEmail, password.length >= 6 ? password : `${password}fallback`);
+                } catch (e) {
+                    console.warn("Background Firebase Auth sync skipped or unavailable.");
+                }
+                
                 return true;
             }
         }
+
+        // 3. Optional fallback to official Auth service if Firestore user not found
+        // But wrapped to handle configuration-not-found gracefully
+        try {
+            await auth.signInWithEmailAndPassword(email, password);
+            setIsLoggedIn(true);
+            setCurrentUser(email);
+            return true;
+        } catch (authError: any) {
+            if (authError.code === 'auth/configuration-not-found') {
+                console.error("Firebase Auth is not enabled in console. Please use 'admin' / '123' or ensure user exists in Firestore.");
+            }
+            throw authError;
+        }
+
+    } catch (error: any) {
+        console.error("Login process error:", error);
         throw error;
     }
   };
 
-  const handleLogout = async () => { await auth.signOut(); setIsLoggedIn(false); setCurrentUser(null); setSelectedModule(null); };
+  const handleLogout = async () => { 
+      try { await auth.signOut(); } catch (e) {}
+      setIsLoggedIn(false); 
+      setCurrentUser(null); 
+      setSelectedModule(null); 
+  };
 
   const handleAddEmployee = async (employeeData: Omit<Employee, 'id'>, password: string) => {
     const leaveBalance = employeeData.employmentType === 'Permanent' ? calculateProRataLeaveBalance(employeeData.joiningDate) : { annual: { total: 0, used: 0 }, sick: { total: 0, used: 0 }, casual: { total: 0, used: 0 }, maternity: { total: 0, used: 0 }, paternity: { total: 0, used: 0 }, alternateDayOff: { total: 0, used: 0 }, others: { total: 0, used: 0 } };
@@ -246,20 +289,16 @@ const App: React.FC = () => {
       const batch = db.batch();
       const reqRef = db.collection('supplyChainRequests').doc(id);
       
-      // Update request status
       batch.update(reqRef, { status: 'Issued', issuedDate: new Date().toISOString() });
       
-      // Update inventory quantities
       request.items.forEach(item => { 
           if (item.inventoryId && item.inventoryId.trim() !== '') { 
               const invRef = db.collection('inventory').doc(item.inventoryId); 
-              // Using negative quantity to decrement
               batch.update(invRef, { quantity: firebase.firestore.FieldValue.increment(-item.quantityRequested) }); 
           } 
       });
       
       await batch.commit();
-      // FIX: Changed return to match expected Promise<void> type in SupplyChainDashboardPage.
       return;
   };
 
