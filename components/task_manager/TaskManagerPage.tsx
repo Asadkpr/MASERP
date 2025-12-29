@@ -9,6 +9,52 @@ import CalendarPage from './CalendarPage';
 import AnalyticsPage from './AnalyticsPage';
 import NotesPage from './NotesPage';
 
+// FIX: Moved PriorityBadge out of TaskBoardView to avoid unnecessary re-renders and fix TS errors
+const PriorityBadge = ({ priority }: { priority: string }) => {
+    const colors = {
+        'Low': 'bg-gray-100 text-gray-800',
+        'Medium': 'bg-blue-100 text-blue-800',
+        'High': 'bg-orange-100 text-orange-800',
+        'Critical': 'bg-red-100 text-red-800'
+    };
+    return <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${(colors as any)[priority]}`}>{priority}</span>;
+};
+
+// FIX: Moved TaskCard out of TaskBoardView and converted to React.FC to properly handle 'key' prop and optimize rendering
+interface TaskCardProps {
+    task: Task;
+    onSelect: (task: Task) => void;
+}
+
+const TaskCard: React.FC<TaskCardProps> = ({ task, onSelect }) => {
+    const isOverdue = new Date(task.dueDate) < new Date() && task.status !== 'Closed';
+    return (
+        <div 
+            onClick={() => onSelect(task)}
+            className={`bg-white p-3 rounded-lg shadow-sm border mb-3 cursor-pointer hover:shadow-md transition-all ${isOverdue ? 'border-red-300 border-l-4' : 'border-slate-200'}`}
+        >
+            <div className="flex justify-between items-start mb-2">
+                <PriorityBadge priority={task.priority} />
+                <span className="text-[10px] text-slate-400">{new Date(task.dueDate).toLocaleDateString()}</span>
+            </div>
+            <h4 className="font-bold text-blue-900 text-sm mb-1 leading-tight">{task.title}</h4>
+            <p className="text-xs text-slate-500 mb-2 line-clamp-2">{task.description}</p>
+            
+            <div className="flex justify-between items-center border-t pt-2 mt-2">
+                <div className="flex items-center gap-1">
+                    <div className="w-5 h-5 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center text-[10px] font-bold">
+                        {task.assignedToName.charAt(0)}
+                    </div>
+                    <span className="text-[10px] text-slate-600 truncate max-w-[80px]">{task.assignedToName}</span>
+                </div>
+                <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${task.status === 'Reopened' ? 'bg-red-50 text-red-600' : 'bg-slate-100 text-slate-600'}`}>
+                    {task.status}
+                </span>
+            </div>
+        </div>
+    );
+};
+
 interface TaskManagerPageProps {
     onBack: () => void;
     onLogout: () => void;
@@ -128,45 +174,6 @@ const TaskBoardView: React.FC<{
         closed: filteredTasks.filter(t => t.status === 'Closed'),
     };
 
-    const PriorityBadge = ({ priority }: { priority: string }) => {
-        const colors = {
-            'Low': 'bg-gray-100 text-gray-800',
-            'Medium': 'bg-blue-100 text-blue-800',
-            'High': 'bg-orange-100 text-orange-800',
-            'Critical': 'bg-red-100 text-red-800'
-        };
-        return <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${(colors as any)[priority]}`}>{priority}</span>;
-    };
-
-    const TaskCard = ({ task }: { task: Task }) => {
-        const isOverdue = new Date(task.dueDate) < new Date() && task.status !== 'Closed';
-        return (
-            <div 
-                onClick={() => setSelectedTask(task)}
-                className={`bg-white p-3 rounded-lg shadow-sm border mb-3 cursor-pointer hover:shadow-md transition-all ${isOverdue ? 'border-red-300 border-l-4' : 'border-slate-200'}`}
-            >
-                <div className="flex justify-between items-start mb-2">
-                    <PriorityBadge priority={task.priority} />
-                    <span className="text-[10px] text-slate-400">{new Date(task.dueDate).toLocaleDateString()}</span>
-                </div>
-                <h4 className="font-bold text-blue-900 text-sm mb-1 leading-tight">{task.title}</h4>
-                <p className="text-xs text-slate-500 mb-2 line-clamp-2">{task.description}</p>
-                
-                <div className="flex justify-between items-center border-t pt-2 mt-2">
-                    <div className="flex items-center gap-1">
-                        <div className="w-5 h-5 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center text-[10px] font-bold">
-                            {task.assignedToName.charAt(0)}
-                        </div>
-                        <span className="text-[10px] text-slate-600 truncate max-w-[80px]">{task.assignedToName}</span>
-                    </div>
-                    <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${task.status === 'Reopened' ? 'bg-red-50 text-red-600' : 'bg-slate-100 text-slate-600'}`}>
-                        {task.status}
-                    </span>
-                </div>
-            </div>
-        );
-    };
-
     // Modal Action Handler
     const handleWorkflowAction = async (action: string) => {
         if (!selectedTask) return;
@@ -279,7 +286,7 @@ const TaskBoardView: React.FC<{
                                         <div className="flex gap-2">
                                             <button onClick={() => handleWorkflowAction('Approve')} className="flex-1 bg-green-600 text-white py-2 rounded font-medium hover:bg-green-700">Approve & Close</button>
                                             <div className="flex-1 flex flex-col gap-1">
-                                                <button onClick={() => handleWorkflowAction('Reject')} className="bg-red-500 text-white py-2 rounded font-medium hover:bg-red-600">Reject</button>
+                                                <button onClick={() => handleWorkflowAction('Reject')} className="bg-red-50 text-red-600 border border-red-200 py-2 rounded font-medium hover:bg-red-100 transition-colors">Reject</button>
                                             </div>
                                         </div>
                                         <input 
@@ -360,7 +367,8 @@ const TaskBoardView: React.FC<{
                         <span className="bg-slate-200 text-slate-700 text-xs px-2 py-0.5 rounded-full">{columns.todo.length}</span>
                     </div>
                     <div className="flex-1 overflow-y-auto pr-1">
-                        {columns.todo.map(t => <TaskCard key={t.id} task={t} />)}
+                        {/* FIX: Use external TaskCard and pass onSelect prop to satisfy TS and avoid 'key' error */}
+                        {columns.todo.map(t => <TaskCard key={t.id} task={t} onSelect={setSelectedTask} />)}
                     </div>
                 </div>
 
@@ -371,7 +379,8 @@ const TaskBoardView: React.FC<{
                         <span className="bg-blue-200 text-blue-800 text-xs px-2 py-0.5 rounded-full">{columns.inProgress.length}</span>
                     </div>
                     <div className="flex-1 overflow-y-auto pr-1">
-                        {columns.inProgress.map(t => <TaskCard key={t.id} task={t} />)}
+                        {/* FIX: Use external TaskCard and pass onSelect prop to satisfy TS and avoid 'key' error */}
+                        {columns.inProgress.map(t => <TaskCard key={t.id} task={t} onSelect={setSelectedTask} />)}
                     </div>
                 </div>
 
@@ -382,7 +391,8 @@ const TaskBoardView: React.FC<{
                         <span className="bg-orange-200 text-orange-800 text-xs px-2 py-0.5 rounded-full">{columns.review.length}</span>
                     </div>
                     <div className="flex-1 overflow-y-auto pr-1">
-                        {columns.review.map(t => <TaskCard key={t.id} task={t} />)}
+                        {/* FIX: Use external TaskCard and pass onSelect prop to satisfy TS and avoid 'key' error */}
+                        {columns.review.map(t => <TaskCard key={t.id} task={t} onSelect={setSelectedTask} />)}
                     </div>
                 </div>
 
@@ -393,7 +403,8 @@ const TaskBoardView: React.FC<{
                         <span className="bg-green-200 text-green-800 text-xs px-2 py-0.5 rounded-full">{columns.closed.length}</span>
                     </div>
                     <div className="flex-1 overflow-y-auto pr-1">
-                        {columns.closed.map(t => <TaskCard key={t.id} task={t} />)}
+                        {/* FIX: Use external TaskCard and pass onSelect prop to satisfy TS and avoid 'key' error */}
+                        {columns.closed.map(t => <TaskCard key={t.id} task={t} onSelect={setSelectedTask} />)}
                     </div>
                 </div>
             </div>

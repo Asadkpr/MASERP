@@ -44,33 +44,17 @@ const App: React.FC = () => {
     if (isLoggedIn && currentUser === 'admin' && inventory.length === 0) {
         const seedKitchenInventory = async () => {
             const items = [
-                {itemCode: "CAF-101", model: "Tomatoes", type: "Kitchen", subCategory: "Vegetables", brand: "Local Vendor", quantity: 30, unit: "Kg", assetLife: "7 Days", location: "Kitchen Store", condition: "Good", status: "In Stock", assignedTo: ""},
-                {itemCode: "CAF-102", model: "Onions", type: "Kitchen", subCategory: "Vegetables", brand: "Local Vendor", quantity: 40, unit: "Kg", assetLife: "15 Days", location: "Kitchen Store", condition: "Good", status: "In Stock", assignedTo: ""},
-                {itemCode: "CAF-103", model: "Potatoes", type: "Kitchen", subCategory: "Vegetables", brand: "Local Vendor", quantity: 50, unit: "Kg", assetLife: "20 Days", location: "Kitchen Store", condition: "Good", status: "In Stock", assignedTo: ""},
-                {itemCode: "CAF-104", model: "Garlic", type: "Kitchen", subCategory: "Vegetables", brand: "Local Vendor", quantity: 10, unit: "Kg", assetLife: "30 Days", location: "Kitchen Store", condition: "Good", status: "In Stock", assignedTo: ""},
-                {itemCode: "CAF-105", model: "Ginger", type: "Kitchen", subCategory: "Vegetables", brand: "Local Vendor", quantity: 8, unit: "Kg", assetLife: "20 Days", location: "Kitchen Store", condition: "Good", status: "In Stock", assignedTo: ""},
-                {itemCode: "CAF-106", model: "Milk", type: "Kitchen", subCategory: "Dairy", brand: "Nestle", quantity: 25, unit: "Liter", assetLife: "7 Days", location: "Chiller", condition: "Good", status: "In Stock", assignedTo: ""},
-                {itemCode: "CAF-107", model: "Butter", type: "Kitchen", subCategory: "Dairy", brand: "Dairyland", quantity: 10, unit: "Kg", assetLife: "30 Days", location: "Chiller", condition: "Good", status: "In Stock", assignedTo: ""},
-                {itemCode: "CAF-108", model: "Cheddar Cheese", type: "Kitchen", subCategory: "Dairy", brand: "Adam's", quantity: 8, unit: "Kg", assetLife: "45 Days", location: "Chiller", condition: "Good", status: "In Stock", assignedTo: ""},
-                {itemCode: "CAF-109", model: "Eggs", type: "Kitchen", subCategory: "Poultry", brand: "Local Farm", quantity: 15, unit: "Dozen", assetLife: "10 Days", location: "Chiller", condition: "Good", status: "In Stock", assignedTo: ""},
-                {itemCode: "CAF-110", model: "Chicken Boneless", type: "Kitchen", subCategory: "Meat", brand: "Local Supplier", quantity: 20, unit: "Kg", assetLife: "7 Days", location: "Freezer", condition: "Good", status: "In Stock", assignedTo: ""},
-                {itemCode: "CAF-111", model: "Beef", type: "Kitchen", subCategory: "Meat", brand: "Local Supplier", quantity: 15, unit: "Kg", assetLife: "7 Days", location: "Freezer", condition: "Good", status: "In Stock", assignedTo: ""},
-                {itemCode: "CAF-112", model: "Bread Loaf", type: "Kitchen", subCategory: "Bakery", brand: "Local Bakery", quantity: 30, unit: "Pieces", assetLife: "3 Days", location: "Kitchen", condition: "Good", status: "In Stock", assignedTo: ""},
-                {itemCode: "CAF-113", model: "Burger Buns", type: "Kitchen", subCategory: "Bakery", brand: "Local Bakery", quantity: 50, unit: "Pieces", assetLife: "3 Days", location: "Kitchen", condition: "Good", status: "In Stock", assignedTo: ""},
-                {itemCode: "CAF-114", model: "Basmati Rice", type: "Kitchen", subCategory: "Grains", brand: "Guard", quantity: 25, unit: "Kg", assetLife: "12 Months", location: "Store Room", condition: "Good", status: "In Stock", assignedTo: ""},
-                {itemCode: "CAF-115", model: "Salt", type: "Kitchen", subCategory: "Spices", brand: "National", quantity: 10, unit: "Kg", assetLife: "24 Months", location: "Store Room", condition: "Good", status: "In Stock", assignedTo: ""},
-                {itemCode: "CAF-116", model: "Red Chili Powder", type: "Kitchen", subCategory: "Spices", brand: "National", quantity: 5, unit: "Kg", assetLife: "18 Months", location: "Store Room", condition: "Good", status: "In Stock", assignedTo: ""},
-                {itemCode: "CAF-117", model: "Mayonnaise", type: "Kitchen", subCategory: "Sauces", brand: "Young's", quantity: 10, unit: "Bottle", assetLife: "6 Months", location: "Store Room", condition: "Good", status: "In Stock", assignedTo: ""},
-                {itemCode: "CAF-118", model: "Ketchup", type: "Kitchen", subCategory: "Sauces", brand: "Young's", quantity: 10, unit: "Bottle", assetLife: "6 Months", location: "Store Room", condition: "Good", status: "In Stock", assignedTo: ""},
-                {itemCode: "CAF-119", model: "Cooking Oil", type: "Kitchen", subCategory: "Oil", brand: "Sufi", quantity: 20, unit: "Liter", assetLife: "12 Months", location: "Store Room", condition: "Good", status: "In Stock", assignedTo: ""},
-                {itemCode: "CAF-120", model: "Tea Leaves", type: "Kitchen", subCategory: "Tea", brand: "Tapal", quantity: 5, unit: "Kg", assetLife: "18 Months", location: "Store Room", condition: "Good", status: "In Stock", assignedTo: ""},
-                {itemCode: "CAF-121", model: "Coffee", type: "Kitchen", subCategory: "Coffee", brand: "Local Roaster", quantity: 8, unit: "Kg", assetLife: "6 Months", location: "Store Room", condition: "Good", status: "In Stock", assignedTo: ""},
-                {itemCode: "CAF-122", model: "Frozen Fries", type: "Kitchen", subCategory: "Frozen Food", brand: "McCain", quantity: 15, unit: "Kg", assetLife: "6 Months", location: "Freezer", condition: "Good", status: "In Stock", assignedTo: ""},
-                {itemCode: "CAF-123", model: "Takeaway Boxes", type: "Kitchen", subCategory: "Packaging", brand: "Local", quantity: 500, unit: "Pieces", assetLife: "N/A", location: "Store Room", condition: "Good", status: "In Stock", assignedTo: ""},
-                {itemCode: "CAF-124", model: "Dishwashing Liquid", type: "Kitchen", subCategory: "Cleaning", brand: "Max", quantity: 5, unit: "Liter", assetLife: "12 Months", location: "Cleaning Store", condition: "Good", status: "In Stock", assignedTo: ""},
-                {itemCode: "CAF-125", model: "Flour", type: "Kitchen", subCategory: "Bakery", brand: "Local Vendor", quantity: 100, unit: "kg", assetLife: "6 Months", location: "Store Room", condition: "Good", status: "In Stock", assignedTo: ""},
-                {itemCode: "CAF-126", model: "Sugar", type: "Kitchen", subCategory: "Bakery", brand: "Local Vendor", quantity: 50, unit: "kg", assetLife: "12 Months", location: "Store Room", condition: "Good", status: "In Stock", assignedTo: ""},
-                {itemCode: "CAF-127", model: "Coffee Beans", type: "Kitchen", subCategory: "Coffee", brand: "Local Vendor", quantity: 10, unit: "kg", assetLife: "6 Months", location: "Store Room", condition: "Good", status: "In Stock", assignedTo: ""}
+                // Consumables (Ingredients)
+                {itemCode: "CON-101", model: "Tomatoes", itemName: "Tomatoes", type: "Kitchen", subCategory: "Vegetables", brand: "Local Vendor", quantity: 30, unit: "Kg", condition: "Fresh", status: "In Stock", assignedTo: "", location: "Kitchen Store", purchaseDate: "2024-03-01", cost: "150", remarks: "Fresh stock"},
+                {itemCode: "CON-102", model: "Onions", itemName: "Onions", type: "Kitchen", subCategory: "Vegetables", brand: "Local Vendor", quantity: 40, unit: "Kg", condition: "Good", status: "In Stock", assignedTo: "", location: "Kitchen Store", purchaseDate: "2024-03-01", cost: "80", remarks: ""},
+                {itemCode: "CON-103", model: "Fine Flour", itemName: "Fine Flour", type: "Kitchen", subCategory: "Bakery", brand: "Local Vendor", quantity: 100, unit: "kg", condition: "Good", status: "In Stock", assignedTo: "", location: "Store Room", purchaseDate: "2024-02-25", cost: "1200", remarks: "Dry storage"},
+                
+                // FIXED ASSETS (KITCHEN EQUIPMENT)
+                {itemCode: "KFA-001", model: "Industrial Pizza Oven", itemName: "Pizza Oven XL", type: "Kitchen", subCategory: "Cooking Equipment", brand: "Rational", material: "Stainless Steel", quantity: 1, unit: "Pcs", condition: "Excellent", status: "In Stock", assignedTo: "", location: "Main Kitchen", purchaseDate: "2023-05-12", cost: "450,000", remarks: "Serviced monthly"},
+                {itemCode: "KFA-002", model: "20L Dough Mixer", itemName: "Planetary Mixer", type: "Kitchen", subCategory: "Bakery Tools", brand: "Hobart", material: "Cast Iron/Steel", quantity: 2, unit: "Pcs", condition: "Good", status: "In Use", assignedTo: "Chef Ahmed", location: "Bakery Lab", purchaseDate: "2023-01-20", cost: "185,000", remarks: "Heavy duty"},
+                {itemCode: "KFA-003", model: "Commercial Deep Fridge", itemName: "Vertical Chiller", type: "Kitchen", subCategory: "Refrigeration", brand: "Haier", material: "Aluminum/Fiber", quantity: 1, unit: "Pcs", condition: "New", status: "In Stock", assignedTo: "", location: "Storage Area", purchaseDate: "2024-02-15", cost: "120,000", remarks: "Warranty active"},
+                {itemCode: "KFA-004", model: "4-Burner Range", itemName: "Cooking Range", type: "Kitchen", subCategory: "Cooking Equipment", brand: "Super Asia", material: "Metal/Brass", quantity: 3, unit: "Pcs", condition: "Good", status: "In Use", assignedTo: "Chef Maria", location: "Main Kitchen", purchaseDate: "2022-11-05", cost: "85,000", remarks: "Needs igniter check"},
+                {itemCode: "KFA-005", model: "Stainless Prep Table", itemName: "Work Station", type: "Kitchen", subCategory: "Furniture", brand: "Custom Fabrication", material: "Stainless Steel 304", quantity: 4, unit: "Pcs", condition: "Good", status: "In Stock", assignedTo: "", location: "Prep Lab", purchaseDate: "2023-06-30", cost: "45,000", remarks: "Sanitary grade"}
             ];
             const batch = db.batch();
             items.forEach(item => { const ref = db.collection('inventory').doc(); batch.set(ref, item); });
@@ -88,7 +72,10 @@ const App: React.FC = () => {
         if (user.email === 'admin@masbot.erp') setCurrentUser('admin');
         else setCurrentUser(user.email);
       } else {
+<<<<<<< HEAD
         // Only reset if we are definitely not logged in via custom firestore flow
+=======
+>>>>>>> 5e85b2f (Move build files to root folder)
         if (!isLoggedIn) {
           setCurrentUser(null);
           setSelectedModule(null);
@@ -150,6 +137,7 @@ const App: React.FC = () => {
 
   const handleLogin = async (email: string, password?: string): Promise<boolean> => {
     if (!password) return false;
+<<<<<<< HEAD
     
     // 1. Hardcoded admin check
     if (email === 'admin' && password === '123') {
@@ -185,30 +173,56 @@ const App: React.FC = () => {
 
         // 3. Optional fallback to official Auth service if Firestore user not found
         // But wrapped to handle configuration-not-found gracefully
+=======
+    if (email === 'admin' && password === '123') { setIsLoggedIn(true); setCurrentUser('admin'); return true; }
+    try {
+        const snapshot = await db.collection("users").where("email", "==", email).get();
+        if (!snapshot.empty) {
+            const userData = snapshot.docs[0].data() as User;
+            if (userData.password === password) {
+                setIsLoggedIn(true);
+                setCurrentUser(email);
+                setShowPasswordChange(!!userData.passwordChangeRequired);
+                const authEmail = email.includes('@') ? email : `${email}@masbot.erp`;
+                try { await auth.signInWithEmailAndPassword(authEmail, password.length >= 6 ? password : `${password}fallback`); } catch (e) { console.warn("Firebase Auth sync skipped."); }
+                return true;
+            }
+        }
+>>>>>>> 5e85b2f (Move build files to root folder)
         try {
             await auth.signInWithEmailAndPassword(email, password);
             setIsLoggedIn(true);
             setCurrentUser(email);
             return true;
         } catch (authError: any) {
+<<<<<<< HEAD
             if (authError.code === 'auth/configuration-not-found') {
                 console.error("Firebase Auth is not enabled in console. Please use 'admin' / '123' or ensure user exists in Firestore.");
             }
             throw authError;
         }
 
+=======
+            if (authError.code === 'auth/configuration-not-found') console.error("Firebase Auth not enabled.");
+            throw authError;
+        }
+>>>>>>> 5e85b2f (Move build files to root folder)
     } catch (error: any) {
         console.error("Login process error:", error);
         throw error;
     }
   };
 
+<<<<<<< HEAD
   const handleLogout = async () => { 
       try { await auth.signOut(); } catch (e) {}
       setIsLoggedIn(false); 
       setCurrentUser(null); 
       setSelectedModule(null); 
   };
+=======
+  const handleLogout = async () => { try { await auth.signOut(); } catch (e) {} setIsLoggedIn(false); setCurrentUser(null); setSelectedModule(null); };
+>>>>>>> 5e85b2f (Move build files to root folder)
 
   const handleAddEmployee = async (employeeData: Omit<Employee, 'id'>, password: string) => {
     const leaveBalance = employeeData.employmentType === 'Permanent' ? calculateProRataLeaveBalance(employeeData.joiningDate) : { annual: { total: 0, used: 0 }, sick: { total: 0, used: 0 }, casual: { total: 0, used: 0 }, maternity: { total: 0, used: 0 }, paternity: { total: 0, used: 0 }, alternateDayOff: { total: 0, used: 0 }, others: { total: 0, used: 0 } };
@@ -218,9 +232,8 @@ const App: React.FC = () => {
 
   const handleUpdateEmployee = async (employeeId: string, updatedData: Partial<Omit<Employee, 'id'>>) => { 
       const empRef = db.collection('employees').doc(employeeId);
-      if (updatedData.employmentType === 'Permanent') {
-          await empRef.update({ ...updatedData, leaveBalance: calculateProRataLeaveBalance(new Date().toISOString().split('T')[0]) });
-      } else { await empRef.update(updatedData); }
+      if (updatedData.employmentType === 'Permanent') await empRef.update({ ...updatedData, leaveBalance: calculateProRataLeaveBalance(new Date().toISOString().split('T')[0]) });
+      else await empRef.update(updatedData);
       return { success: true, message: "Employee updated successfully" }; 
   };
   const handleResignEmployee = async (id: string) => { await db.collection('employees').doc(id).update({ status: 'Resigned' }); return { success: true, message: "Employee marked as resigned." }; };
@@ -239,7 +252,7 @@ const App: React.FC = () => {
             const typeKey = { 'Casual Leave': 'casual', 'Sick Leave': 'sick', 'Annual Leave': 'annual', 'Maternity Leave': 'maternity', 'Paternity Leave': 'paternity', 'Alternate Day Off': 'alternateDayOff', 'Others': 'others' }[request.leaveType] as keyof LeaveBalance;
             await db.collection('employees').doc(request.employeeId).update({ [`leaveBalance.${typeKey}.used`]: firebase.firestore.FieldValue.increment(days) });
         }
-    } else { await reqRef.update({ status: 'Rejected' }); }
+    } else await reqRef.update({ status: 'Rejected' });
   };
   const handleRunPayroll = async () => {
       const record: PayrollRecord = { id: '', date: new Date().toISOString(), monthYear: new Date().toLocaleString('default', { month: 'long', year: 'numeric' }), totalPayroll: 0, totalDeductions: 0, totalNetPay: 0, employeeRecords: employees.map(emp => ({ employeeId: emp.id, employeeName: `${emp.firstName} ${emp.lastName}`, department: emp.department, baseSalary: parseFloat(emp.salary), deductions: 0, netPay: parseFloat(emp.salary) })) };
@@ -281,12 +294,10 @@ const App: React.FC = () => {
       await db.collection('supplyChainRequests').doc(id).update(updates);
   };
 
-  // --- CRITICAL FIX: handleIssueRequest ---
   const handleIssueRequest = async (id: string) => {
-      const request = supplyChainRequests.find(r => r.id === id); 
-      if (!request) throw new Error("Request not found");
-      
+      const request = supplyChainRequests.find(r => r.id === id); if (!request) throw new Error("Request not found");
       const batch = db.batch();
+<<<<<<< HEAD
       const reqRef = db.collection('supplyChainRequests').doc(id);
       
       batch.update(reqRef, { status: 'Issued', issuedDate: new Date().toISOString() });
@@ -300,6 +311,11 @@ const App: React.FC = () => {
       
       await batch.commit();
       return;
+=======
+      batch.update(db.collection('supplyChainRequests').doc(id), { status: 'Issued', issuedDate: new Date().toISOString() });
+      request.items.forEach(item => { if (item.inventoryId && item.inventoryId.trim() !== '') batch.update(db.collection('inventory').doc(item.inventoryId), { quantity: firebase.firestore.FieldValue.increment(-item.quantityRequested) }); });
+      await batch.commit();
+>>>>>>> 5e85b2f (Move build files to root folder)
   };
 
   const handleForwardToPurchase = async (id: string) => { await db.collection('supplyChainRequests').doc(id).update({ status: 'Forwarded to Purchase' }); };
@@ -316,6 +332,30 @@ const App: React.FC = () => {
       if (po.originalRequestId) batch.update(db.collection('supplyChainRequests').doc(po.originalRequestId), { status: 'Pending Store' });
       await batch.commit();
   };
+
+  // --- FIXED ASSET HANDLERS FOR SUPPLY CHAIN ---
+  const handleIssueAsset = async (assetId: string, employeeName: string) => {
+      const employee = employees.find(e => `${e.firstName} ${e.lastName}` === employeeName);
+      if (!employee) throw new Error("Employee not found");
+      await db.collection('inventory').doc(assetId).update({
+          status: 'In Use',
+          assignedTo: employeeName,
+          department: employee.department,
+          designation: employee.designation,
+          issueDate: new Date().toISOString().split('T')[0]
+      });
+  };
+
+  const handleReturnAsset = async (assetId: string) => {
+      await db.collection('inventory').doc(assetId).update({
+          status: 'In Stock',
+          assignedTo: '',
+          department: '',
+          designation: '',
+          issueDate: ''
+      });
+  };
+
   const handleAddRecipe = async (r: any) => { await db.collection('recipes').add(r); };
 
   const handleCreateTask = async (taskData: Omit<Task, 'id'>) => { await db.collection('tasks').add({ ...taskData, history: [{ action: 'Created', by: currentUser || 'Unknown', timestamp: new Date().toISOString(), details: `Task created with status ${taskData.status}` }] }); };
@@ -327,7 +367,12 @@ const App: React.FC = () => {
       await db.collection('tasks').doc(taskId).update(updateData);
   };
   const handleDeleteTask = async (taskId: string) => { await db.collection('tasks').doc(taskId).delete(); };
-  const handleSendMessage = async (msg: Omit<ChatMessage, 'id'>) => { await db.collection('messages').add(msg); };
+  
+  const handleSendMessage = async (msg: Omit<ChatMessage, 'id'>) => { 
+      const cleanMsg = JSON.parse(JSON.stringify(msg));
+      await db.collection('messages').add(cleanMsg); 
+  };
+  
   const handleAddNote = async (note: Omit<Note, 'id'>) => { await db.collection('notes').add(note); };
   const handleDeleteNote = async (id: string) => { await db.collection('notes').doc(id).delete(); };
 
@@ -351,9 +396,9 @@ const App: React.FC = () => {
     switch (selectedModule) {
       case 'hr': return <HrDashboardPage onBack={() => setSelectedModule(null)} employees={employees} users={users} onAddEmployee={handleAddEmployee} onLogout={handleLogout} allPermissions={permissions} onUserPermissionsChange={handleUserPermissionsChange} currentUserEmail={currentUser || ''} leaveRequests={leaveRequests} onAddLeaveRequest={handleAddLeaveRequest} onLeaveRequestAction={handleLeaveRequestAction} onResignEmployee={handleResignEmployee} payrollHistory={payrollHistory} onRunPayroll={handleRunPayroll} onUpdateEmployee={handleUpdateEmployee} attendanceRecords={attendanceRecords} onUploadAttendance={handleUploadAttendance} />;
       case 'inventory_management': return <InventoryDashboardPage onBack={() => setSelectedModule(null)} onLogout={handleLogout} currentUserEmail={currentUser || ''} permissions={permissions[currentUser || '']?.['inventory_management']} inventory={inventory} employees={employees} labs={labs} toners={toners} mrfs={mrfs} recipes={recipes} onAddNewAsset={handleAddNewAsset} onUpdateAsset={handleUpdateAsset} onDeleteAsset={handleDeleteAsset} onResignEmployee={() => {}} onAddSystem={handleAddSystem} onUpdateSystem={handleUpdateSystem} onDeleteSystem={handleDeleteSystem} onSaveTonerModel={handleSaveTonerModel} onDeleteTonerModel={onDeleteTonerModel} onMarkTonerEmpty={()=>{}} onMarkTonerFilled={()=>{}} onAddNewMRF={handleAddNewMRF} onUpdateMRF={handleUpdateMRF} onDeleteMRF={handleDeleteMRF} onUpdateKitchenStock={handleUpdateKitchenStock} onCreateSCRequest={handleCreateSCRequest} />;
-      case 'supply_chain': return <SupplyChainDashboardPage onBack={() => setSelectedModule(null)} onLogout={handleLogout} currentUserEmail={currentUser || ''} inventory={inventory} employees={employees} requests={supplyChainRequests} purchaseRequests={purchaseRequests} purchaseOrders={purchaseOrders} recipes={recipes} vendors={vendors} onCreateRequest={handleCreateSCRequest} onActionRequest={handleActionRequest} onIssueRequest={handleIssueRequest} onForwardToPurchase={handleForwardToPurchase} onCreatePurchaseRequest={handleCreatePurchaseRequest} onCreatePO={handleCreatePO} onUpdatePO={handleUpdatePO} onDeletePO={handleDeletePO} onPOAction={handlePOAction} onGRN={handleGRN} onAddNewAsset={handleAddNewAsset} onUpdateAsset={handleUpdateAsset} onDeleteAsset={handleDeleteAsset} />;
+      case 'supply_chain': return <SupplyChainDashboardPage onBack={() => setSelectedModule(null)} onLogout={handleLogout} currentUserEmail={currentUser || ''} inventory={inventory} employees={employees} requests={supplyChainRequests} purchaseRequests={purchaseRequests} purchaseOrders={purchaseOrders} recipes={recipes} vendors={vendors} onCreateRequest={handleCreateSCRequest} onActionRequest={handleActionRequest} onIssueRequest={handleIssueRequest} onForwardToPurchase={handleForwardToPurchase} onCreatePurchaseRequest={handleCreatePurchaseRequest} onCreatePO={handleCreatePO} onUpdatePO={handleUpdatePO} onDeletePO={handleDeletePO} onPOAction={handlePOAction} onGRN={handleGRN} onAddNewAsset={handleAddNewAsset} onUpdateAsset={handleUpdateAsset} onDeleteAsset={handleDeleteAsset} onIssueAsset={handleIssueAsset} onReturnAsset={handleReturnAsset} />;
       case 'task_manager': return <TaskManagerPage onBack={() => setSelectedModule(null)} onLogout={handleLogout} currentUserEmail={currentUser || ''} tasks={tasks} employees={employees} onCreateTask={handleCreateTask} onTaskWorkflowAction={handleTaskWorkflowAction} onDeleteTask={handleDeleteTask} messages={messages} onSendMessage={handleSendMessage} notes={notes} onAddNote={handleAddNote} onDeleteNote={handleDeleteNote} />;
-      default: return <div className="flex h-screen items-center justify-center flex-col gap-4"><p>Module under construction</p><button onClick={() => setSelectedModule(null)} className="text-blue-500 underline">Go Back</button></div>;
+      default: return <div className="flex h-screen items-center justify-center flex-col gap-4"><p>Module under construction</p><button onClick={() => setSelectedModule(null)} className="text-blue-900 underline">Go Back</button></div>;
     }
   }
 

@@ -34,6 +34,8 @@ interface SupplyChainDashboardPageProps {
     onAddNewAsset: (assets: Omit<InventoryItem, 'id'>[]) => void;
     onUpdateAsset: (asset: InventoryItem) => void;
     onDeleteAsset: (assetId: string) => void;
+    onIssueAsset: (assetId: string, employeeName: string) => Promise<void>;
+    onReturnAsset: (assetId: string) => Promise<void>;
 }
 
 const SupplyChainDashboardPage: React.FC<SupplyChainDashboardPageProps> = (props) => {
@@ -41,7 +43,6 @@ const SupplyChainDashboardPage: React.FC<SupplyChainDashboardPageProps> = (props
     
     const currentEmployee = props.employees.find(e => e.email === props.currentUserEmail);
     const isAdmin = props.currentUserEmail === 'admin'; 
-    // Updated Logic: Account Manager or Finance Department handles approvals
     const isAccountManager = isAdmin || currentEmployee?.role === 'HOD' && currentEmployee?.department === 'Finance' || currentEmployee?.designation === 'Account Manager'; 
     const isStoreManager = isAdmin || currentEmployee?.role === 'HOD' || currentEmployee?.department === 'Store'; 
     const isPurchaseDept = isAdmin || currentEmployee?.department === 'Finance' || currentEmployee?.department === 'Purchase';
@@ -82,6 +83,8 @@ const SupplyChainDashboardPage: React.FC<SupplyChainDashboardPageProps> = (props
                     onAddNewAsset={props.onAddNewAsset}
                     onUpdateAsset={props.onUpdateAsset}
                     onDeleteAsset={props.onDeleteAsset}
+                    onIssueAsset={props.onIssueAsset}
+                    onReturnAsset={props.onReturnAsset}
                 />;
             case 'sc_purchase':
                 if (!isPurchaseDept) return <div className="p-6 text-center text-blue-900">Access Denied. Purchase Department Only.</div>;

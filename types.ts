@@ -137,6 +137,7 @@ export interface InventoryItem {
   subCategory?: string;
   brand?: string;
   model: string;
+  material?: string; // New field for kitchen assets
   
   // Tracking
   serialNumber?: string;
