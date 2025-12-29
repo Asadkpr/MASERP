@@ -41,28 +41,60 @@ const App: React.FC = () => {
 
   // --- One-Time Seeding Logic ---
   useEffect(() => {
-    if (isLoggedIn && currentUser === 'admin' && inventory.length === 0) {
+    if (isLoggedIn && currentUser === 'admin') {
         const seedKitchenInventory = async () => {
+            if (inventory.length > 0) return;
             const items = [
-                // Consumables (Ingredients)
                 {itemCode: "CON-101", model: "Tomatoes", itemName: "Tomatoes", type: "Kitchen", subCategory: "Vegetables", brand: "Local Vendor", quantity: 30, unit: "Kg", condition: "Fresh", status: "In Stock", assignedTo: "", location: "Kitchen Store", purchaseDate: "2024-03-01", cost: "150", remarks: "Fresh stock"},
                 {itemCode: "CON-102", model: "Onions", itemName: "Onions", type: "Kitchen", subCategory: "Vegetables", brand: "Local Vendor", quantity: 40, unit: "Kg", condition: "Good", status: "In Stock", assignedTo: "", location: "Kitchen Store", purchaseDate: "2024-03-01", cost: "80", remarks: ""},
                 {itemCode: "CON-103", model: "Fine Flour", itemName: "Fine Flour", type: "Kitchen", subCategory: "Bakery", brand: "Local Vendor", quantity: 100, unit: "kg", condition: "Good", status: "In Stock", assignedTo: "", location: "Store Room", purchaseDate: "2024-02-25", cost: "1200", remarks: "Dry storage"},
-                
-                // FIXED ASSETS (KITCHEN EQUIPMENT)
-                {itemCode: "KFA-001", model: "Industrial Pizza Oven", itemName: "Pizza Oven XL", type: "Kitchen", subCategory: "Cooking Equipment", brand: "Rational", material: "Stainless Steel", quantity: 1, unit: "Pcs", condition: "Excellent", status: "In Stock", assignedTo: "", location: "Main Kitchen", purchaseDate: "2023-05-12", cost: "450,000", remarks: "Serviced monthly"},
-                {itemCode: "KFA-002", model: "20L Dough Mixer", itemName: "Planetary Mixer", type: "Kitchen", subCategory: "Bakery Tools", brand: "Hobart", material: "Cast Iron/Steel", quantity: 2, unit: "Pcs", condition: "Good", status: "In Use", assignedTo: "Chef Ahmed", location: "Bakery Lab", purchaseDate: "2023-01-20", cost: "185,000", remarks: "Heavy duty"},
-                {itemCode: "KFA-003", model: "Commercial Deep Fridge", itemName: "Vertical Chiller", type: "Kitchen", subCategory: "Refrigeration", brand: "Haier", material: "Aluminum/Fiber", quantity: 1, unit: "Pcs", condition: "New", status: "In Stock", assignedTo: "", location: "Storage Area", purchaseDate: "2024-02-15", cost: "120,000", remarks: "Warranty active"},
-                {itemCode: "KFA-004", model: "4-Burner Range", itemName: "Cooking Range", type: "Kitchen", subCategory: "Cooking Equipment", brand: "Super Asia", material: "Metal/Brass", quantity: 3, unit: "Pcs", condition: "Good", status: "In Use", assignedTo: "Chef Maria", location: "Main Kitchen", purchaseDate: "2022-11-05", cost: "85,000", remarks: "Needs igniter check"},
-                {itemCode: "KFA-005", model: "Stainless Prep Table", itemName: "Work Station", type: "Kitchen", subCategory: "Furniture", brand: "Custom Fabrication", material: "Stainless Steel 304", quantity: 4, unit: "Pcs", condition: "Good", status: "In Stock", assignedTo: "", location: "Prep Lab", purchaseDate: "2023-06-30", cost: "45,000", remarks: "Sanitary grade"}
+                {itemCode: "KFA-001", model: "Industrial Pizza Oven", itemName: "Pizza Oven XL", type: "Kitchen", subCategory: "Cooking Equipment", brand: "Rational", material: "Stainless Steel", quantity: 1, unit: "Pcs", condition: "Excellent", status: "In Stock", assignedTo: "", location: "Main Kitchen", purchaseDate: "2023-05-12", cost: "450,000", remarks: "Serviced monthly"}
             ];
             const batch = db.batch();
             items.forEach(item => { const ref = db.collection('inventory').doc(); batch.set(ref, item); });
             await batch.commit();
         };
+
+        const seedEmployees = async () => {
+            if (employees.length > 0) return;
+            
+            const employeeData = [
+                {
+                    employeeId: "1", firstName: "Mubashara", lastName: "Rubbani", fatherName: "Ghhulam Rabani", cnic: "35202-798789-6", dob: "1995-10-22", gender: "Female", maritalStatus: "Single", phone: "03244092102", email: "mubasharamir22@gmail.com", permanentAddress: "house no.7, street no.8 noulakha park faiz bagh lahore", department: "IT Department", designation: "Software Engineer", joiningDate: "2025-12-25", salary: "120000", shift: "12am -9pm", role: "Employee"
+                },
+                {
+                    employeeId: "2", firstName: "Ayesha", lastName: "Arslan", fatherName: "w/o arslan arshad", cnic: "35201-1298156-0", dob: "1988-11-08", gender: "Female", maritalStatus: "Married", phone: "03214561551", email: "zoyaarslan2@gmail.com", permanentAddress: "house number 32 block b uet society lahore", department: "IT Department", designation: "Data Analyst", joiningDate: "2025-11-17", salary: "85000", shift: "09am -06pm", role: "Employee"
+                },
+                {
+                    employeeId: "3", firstName: "Zoofshan", lastName: "Mureed", fatherName: "mureed hussain", cnic: "3460345995974", dob: "1995-10-25", gender: "Female", maritalStatus: "Single", phone: "03095892784", email: "zoofishanmureedhussain@gmail.com", permanentAddress: "dhalay wali head mrala", department: "IT Department", designation: "QA Engineer", joiningDate: "2025-11-17", salary: "90000", shift: "9am-9pm", role: "Employee"
+                },
+                {
+                    employeeId: "4", firstName: "Tahir", lastName: "Iqbal", fatherName: "muhammad iqbal", cnic: "3660235602409", dob: "1990-12-01", gender: "Male", maritalStatus: "Married", phone: "03054547614", email: "tahirsab911@gmail.com", permanentAddress: "snaro wali puli muhala muhammadi melsi zila wiharri", department: "IT Department", designation: "Senior Dev", joiningDate: "2025-11-17", salary: "160000", shift: "12pm-9pm", role: "Employee"
+                },
+                {
+                    employeeId: "5", firstName: "Hanzala", lastName: "Sani", fatherName: "Muhammad Altaf", cnic: "35201-0272119-9", dob: "2002-07-19", gender: "Male", maritalStatus: "Single", phone: "03234976039", email: "hanzlaking0323@gamil.com", permanentAddress: "near alimantri collage ,chungi amar sidhu,Lahore", department: "Operations", designation: "Support Staff", joiningDate: "2025-01-01", salary: "72000", role: "Employee"
+                },
+                {
+                    employeeId: "6", firstName: "Imran", lastName: "Khalid", fatherName: "khalid iqbal", cnic: "35202-6888706-1", dob: "2007-09-09", gender: "Male", maritalStatus: "Single", phone: "03256044935", email: "imrankhalid522@gmail.com", permanentAddress: "kot lakpat ,street no. 8, mohala shabnam coloni near gravyard , lahore", department: "Operations", designation: "Junior Support", joiningDate: "2025-09-22", salary: "30000", role: "Employee"
+                }
+            ];
+
+            const batch = db.batch();
+            for (const emp of employeeData) {
+                const empRef = db.collection("employees").doc();
+                batch.set(empRef, { ...emp, status: 'Active', leaveBalance: { annual: { total: 14, used: 0 }, sick: { total: 7, used: 0 }, casual: { total: 6, used: 0 }, maternity: { total: 0, used: 0 }, paternity: { total: 0, used: 0 }, alternateDayOff: { total: 0, used: 0 }, others: { total: 0, used: 0 } } });
+                
+                // Add corresponding user account
+                const userRef = db.collection("users").doc(emp.email);
+                batch.set(userRef, { email: emp.email, password: "123456", passwordChangeRequired: false, employeeId: empRef.id });
+            }
+            await batch.commit();
+        };
+
         seedKitchenInventory();
+        seedEmployees();
     }
-  }, [isLoggedIn, currentUser, inventory.length]);
+  }, [isLoggedIn, currentUser, inventory.length, employees.length]);
 
   // --- Auth Listener ---
   useEffect(() => {
@@ -72,10 +104,6 @@ const App: React.FC = () => {
         if (user.email === 'admin@masbot.erp') setCurrentUser('admin');
         else setCurrentUser(user.email);
       } else {
-<<<<<<< HEAD
-        // Only reset if we are definitely not logged in via custom firestore flow
-=======
->>>>>>> 5e85b2f (Move build files to root folder)
         if (!isLoggedIn) {
           setCurrentUser(null);
           setSelectedModule(null);
@@ -137,43 +165,6 @@ const App: React.FC = () => {
 
   const handleLogin = async (email: string, password?: string): Promise<boolean> => {
     if (!password) return false;
-<<<<<<< HEAD
-    
-    // 1. Hardcoded admin check
-    if (email === 'admin' && password === '123') {
-        setIsLoggedIn(true);
-        setCurrentUser('admin');
-        return true;
-    }
-
-    try {
-        // 2.Source of Truth: Verify against Firestore "users" collection first
-        // This bypasses Firebase Auth service configuration issues
-        const snapshot = await db.collection("users").where("email", "==", email).get();
-        
-        if (!snapshot.empty) {
-            const userData = snapshot.docs[0].data() as User;
-            if (userData.password === password) {
-                // Successful database verification
-                setIsLoggedIn(true);
-                setCurrentUser(email);
-                setShowPasswordChange(!!userData.passwordChangeRequired);
-                
-                // Optional: Attempt Firebase Auth sync in background if available
-                const authEmail = email.includes('@') ? email : `${email}@masbot.erp`;
-                try {
-                    await auth.signInWithEmailAndPassword(authEmail, password.length >= 6 ? password : `${password}fallback`);
-                } catch (e) {
-                    console.warn("Background Firebase Auth sync skipped or unavailable.");
-                }
-                
-                return true;
-            }
-        }
-
-        // 3. Optional fallback to official Auth service if Firestore user not found
-        // But wrapped to handle configuration-not-found gracefully
-=======
     if (email === 'admin' && password === '123') { setIsLoggedIn(true); setCurrentUser('admin'); return true; }
     try {
         const snapshot = await db.collection("users").where("email", "==", email).get();
@@ -183,51 +174,22 @@ const App: React.FC = () => {
                 setIsLoggedIn(true);
                 setCurrentUser(email);
                 setShowPasswordChange(!!userData.passwordChangeRequired);
-                const authEmail = email.includes('@') ? email : `${email}@masbot.erp`;
-                try { await auth.signInWithEmailAndPassword(authEmail, password.length >= 6 ? password : `${password}fallback`); } catch (e) { console.warn("Firebase Auth sync skipped."); }
                 return true;
             }
         }
->>>>>>> 5e85b2f (Move build files to root folder)
-        try {
-            await auth.signInWithEmailAndPassword(email, password);
-            setIsLoggedIn(true);
-            setCurrentUser(email);
-            return true;
-        } catch (authError: any) {
-<<<<<<< HEAD
-            if (authError.code === 'auth/configuration-not-found') {
-                console.error("Firebase Auth is not enabled in console. Please use 'admin' / '123' or ensure user exists in Firestore.");
-            }
-            throw authError;
-        }
-
-=======
-            if (authError.code === 'auth/configuration-not-found') console.error("Firebase Auth not enabled.");
-            throw authError;
-        }
->>>>>>> 5e85b2f (Move build files to root folder)
+        return false;
     } catch (error: any) {
         console.error("Login process error:", error);
         throw error;
     }
   };
 
-<<<<<<< HEAD
-  const handleLogout = async () => { 
-      try { await auth.signOut(); } catch (e) {}
-      setIsLoggedIn(false); 
-      setCurrentUser(null); 
-      setSelectedModule(null); 
-  };
-=======
   const handleLogout = async () => { try { await auth.signOut(); } catch (e) {} setIsLoggedIn(false); setCurrentUser(null); setSelectedModule(null); };
->>>>>>> 5e85b2f (Move build files to root folder)
 
   const handleAddEmployee = async (employeeData: Omit<Employee, 'id'>, password: string) => {
     const leaveBalance = employeeData.employmentType === 'Permanent' ? calculateProRataLeaveBalance(employeeData.joiningDate) : { annual: { total: 0, used: 0 }, sick: { total: 0, used: 0 }, casual: { total: 0, used: 0 }, maternity: { total: 0, used: 0 }, paternity: { total: 0, used: 0 }, alternateDayOff: { total: 0, used: 0 }, others: { total: 0, used: 0 } };
     const empDoc = await db.collection("employees").add({ ...employeeData, leaveBalance });
-    await db.collection("users").doc(employeeData.email).set({ email: employeeData.email, password: password, passwordChangeRequired: true, employeeId: empDoc.id });
+    await db.collection("users").doc(employeeData.email).set({ email: employeeData.email, password: password, passwordChangeRequired: false, employeeId: empDoc.id });
   };
 
   const handleUpdateEmployee = async (employeeId: string, updatedData: Partial<Omit<Employee, 'id'>>) => { 
@@ -297,25 +259,9 @@ const App: React.FC = () => {
   const handleIssueRequest = async (id: string) => {
       const request = supplyChainRequests.find(r => r.id === id); if (!request) throw new Error("Request not found");
       const batch = db.batch();
-<<<<<<< HEAD
-      const reqRef = db.collection('supplyChainRequests').doc(id);
-      
-      batch.update(reqRef, { status: 'Issued', issuedDate: new Date().toISOString() });
-      
-      request.items.forEach(item => { 
-          if (item.inventoryId && item.inventoryId.trim() !== '') { 
-              const invRef = db.collection('inventory').doc(item.inventoryId); 
-              batch.update(invRef, { quantity: firebase.firestore.FieldValue.increment(-item.quantityRequested) }); 
-          } 
-      });
-      
-      await batch.commit();
-      return;
-=======
       batch.update(db.collection('supplyChainRequests').doc(id), { status: 'Issued', issuedDate: new Date().toISOString() });
       request.items.forEach(item => { if (item.inventoryId && item.inventoryId.trim() !== '') batch.update(db.collection('inventory').doc(item.inventoryId), { quantity: firebase.firestore.FieldValue.increment(-item.quantityRequested) }); });
       await batch.commit();
->>>>>>> 5e85b2f (Move build files to root folder)
   };
 
   const handleForwardToPurchase = async (id: string) => { await db.collection('supplyChainRequests').doc(id).update({ status: 'Forwarded to Purchase' }); };
@@ -333,7 +279,6 @@ const App: React.FC = () => {
       await batch.commit();
   };
 
-  // --- FIXED ASSET HANDLERS FOR SUPPLY CHAIN ---
   const handleIssueAsset = async (assetId: string, employeeName: string) => {
       const employee = employees.find(e => `${e.firstName} ${e.lastName}` === employeeName);
       if (!employee) throw new Error("Employee not found");

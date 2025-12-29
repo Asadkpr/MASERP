@@ -1,7 +1,9 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import type { SupplyChainRequest, InventoryItem, PurchaseRequest, Employee, Recipe, PurchaseOrder } from '../../types';
 import AssetModal from '../modals/AssetModal';
+
+declare const XLSX: any;
 
 interface StorePageProps {
     requests: SupplyChainRequest[];
@@ -33,6 +35,9 @@ const StorePage: React.FC<StorePageProps> = ({ requests, purchaseRequests, purch
     const [grnData, setGrnData] = useState({ grnNumber: '', remarks: '' });
     const [isAssetModalOpen, setIsAssetModalOpen] = useState(false);
     const [editingAsset, setEditingAsset] = useState<InventoryItem | null>(null);
+    const [uploading, setUploading] = useState(false);
+
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     // --- Data Processing (UNIQUE & CATEGORIZED) ---
     const uniqueInventory = useMemo(() => {
@@ -43,7 +48,6 @@ const StorePage: React.FC<StorePageProps> = ({ requests, purchaseRequests, purch
         return Array.from(map.values());
     }, [inventory]);
 
-    // Split unique items into Consumables (Ingredients/Ration) and Fixed Assets (Machinery/Equipment)
     const kitchenConsumables = useMemo(() => {
         return uniqueInventory.filter(item => 
             item.type === 'Kitchen' && 
@@ -66,7 +70,6 @@ const StorePage: React.FC<StorePageProps> = ({ requests, purchaseRequests, purch
         );
     }, [uniqueInventory]);
 
-    // --- Stats for Counters ---
     const stats = useMemo(() => {
         const totalItems = uniqueInventory.length;
         const lowStockCount = uniqueInventory.filter(i => (i.quantity || 0) <= 5).length;
@@ -98,6 +101,63 @@ const StorePage: React.FC<StorePageProps> = ({ requests, purchaseRequests, purch
     const approvedPOs = purchaseOrders.filter(po => po.status === 'Approved');
 
     // --- Handlers ---
+    const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        setUploading(true);
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            try {
+                const data = new Uint8Array(e.target?.result as ArrayBuffer);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+                const mappedAssets: Omit<InventoryItem, 'id'>[] = jsonData.map((row: any) => {
+                    // Try to match headers loosely
+                    const findVal = (keys: string[]) => {
+                        const foundKey = Object.keys(row).find(k => keys.includes(k.toLowerCase().replace(/ /g, '').replace(/_/g, '')));
+                        return foundKey ? row[foundKey] : undefined;
+                    };
+
+                    return {
+                        itemCode: String(findVal(['itemcode', 'assetcode', 'code']) || ''),
+                        itemName: String(findVal(['itemname', 'name', 'assetname']) || ''),
+                        model: String(findVal(['model', 'itemname', 'name']) || ''),
+                        type: 'Kitchen',
+                        subCategory: String(findVal(['subcategory', 'category', 'type']) || 'Kitchen Asset'),
+                        material: String(findVal(['material']) || ''),
+                        quantity: Number(findVal(['quantity', 'qty']) || 1),
+                        unit: String(findVal(['unit', 'uom']) || 'Pcs'),
+                        condition: String(findVal(['condition', 'status']) || 'New'),
+                        purchaseDate: String(findVal(['purchasedate', 'date']) || ''),
+                        cost: String(findVal(['purchaseprice', 'cost', 'price']) || '0'),
+                        location: String(findVal(['location', 'assignedl', 'storage']) || 'Store'),
+                        assignedTo: String(findVal(['assignedto', 'responsibleperson', 'user']) || ''),
+                        remarks: String(findVal(['remarks', 'note', 'others']) || ''),
+                        status: findVal(['assignedto', 'responsibleperson', 'user']) ? 'In Use' : 'In Stock',
+                        assignedToDepartment: '', // Placeholder
+                        specs: { cpu: '', ram: '', storage: '', gpu: '', lcd: '' }
+                    };
+                });
+
+                if (mappedAssets.length > 0) {
+                    onAddNewAsset(mappedAssets);
+                    alert(`Successfully imported ${mappedAssets.length} kitchen assets.`);
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Failed to parse file. Please ensure it follows the correct format.");
+            } finally {
+                setUploading(false);
+                if (fileInputRef.current) fileInputRef.current.value = '';
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    };
+
     const handleIssueAssetClick = async (assetId: string) => {
         const employeeName = prompt("Enter Chef/Employee name to issue this equipment:");
         if (!employeeName) return;
@@ -147,12 +207,18 @@ const StorePage: React.FC<StorePageProps> = ({ requests, purchaseRequests, purch
                     <p className="text-sm text-blue-600 font-medium">Managing Kitchen Inventory (Ration) and Fixed Assets (Professional Equipment).</p>
                 </div>
                 <div className="flex gap-2">
-                    <button className="px-4 py-2 bg-purple-100 text-purple-900 border border-purple-200 rounded-lg hover:bg-purple-200 font-bold text-sm flex items-center gap-2 shadow-sm">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                        Generate MRF
+                    <input type="file" ref={fileInputRef} onChange={handleFileUpload} accept=".xlsx, .xls, .csv" className="hidden" />
+                    <button 
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={uploading}
+                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium text-sm flex items-center gap-2 shadow-sm transition-all active:scale-95 disabled:bg-slate-400"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                        {uploading ? 'Processing...' : 'Upload Inventory'}
                     </button>
-                    <button onClick={handleOpenAddAsset} className="px-4 py-2 bg-blue-900 text-white rounded-lg hover:bg-blue-800 font-medium text-sm flex items-center gap-2 shadow-sm">
-                        <span>+ Add Kitchen Asset</span>
+                    <button onClick={handleOpenAddAsset} className="px-4 py-2 bg-blue-900 text-white rounded-lg hover:bg-blue-800 font-medium text-sm flex items-center gap-2 shadow-sm transition-all active:scale-95">
+                        <span className="text-lg font-bold">+</span>
+                        <span>Add Kitchen Asset</span>
                     </button>
                 </div>
             </div>
