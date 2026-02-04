@@ -68,7 +68,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
         <div className="p-8">
           <div className="flex flex-col items-center mb-8">
             <MasbotLogo className="h-16 w-auto mb-6" />
-            <h1 className="text-2xl font-bold text-blue-900">MASERP System</h1>
+            {/* <h1 className="text-2xl font-bold text-blue-900">MASERP System</h1> */}
             <p className="text-blue-800 text-sm mt-1">Authorized Personnel Login Only</p>
           </div>
 
@@ -127,7 +127,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
           </form>
         </div>
         <div className="bg-slate-50 p-4 border-t border-slate-200 text-center">
-          <p className="text-xs text-slate-500 font-medium">© 2024 MASBOT. All Rights Reserved.</p>
+          <p className="text-xs text-slate-500 font-medium">© 2026 MASBOT. All Rights Reserved.</p>
         </div>
       </div>
 

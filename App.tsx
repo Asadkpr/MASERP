@@ -42,64 +42,6 @@ const App: React.FC = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [notes, setNotes] = useState<Note[]>([]);
 
-<<<<<<< HEAD
-  // --- One-Time Seeding Logic ---
-  useEffect(() => {
-    if (isLoggedIn && currentUser === 'admin') {
-        const seedKitchenInventory = async () => {
-            if (inventory.length > 0) return;
-            const items = [
-                {itemCode: "CON-101", model: "Tomatoes", itemName: "Tomatoes", type: "Kitchen", subCategory: "Vegetables", brand: "Local Vendor", quantity: 30, unit: "Kg", condition: "Fresh", status: "In Stock", assignedTo: "", location: "Kitchen Store", purchaseDate: "2024-03-01", cost: "150", remarks: "Fresh stock"},
-                {itemCode: "CON-102", model: "Onions", itemName: "Onions", type: "Kitchen", subCategory: "Vegetables", brand: "Local Vendor", quantity: 40, unit: "Kg", condition: "Good", status: "In Stock", assignedTo: "", location: "Kitchen Store", purchaseDate: "2024-03-01", cost: "80", remarks: ""},
-                {itemCode: "CON-103", model: "Fine Flour", itemName: "Fine Flour", type: "Kitchen", subCategory: "Bakery", brand: "Local Vendor", quantity: 100, unit: "kg", condition: "Good", status: "In Stock", assignedTo: "", location: "Store Room", purchaseDate: "2024-02-25", cost: "1200", remarks: "Dry storage"},
-                {itemCode: "KFA-001", model: "Industrial Pizza Oven", itemName: "Pizza Oven XL", type: "Kitchen", subCategory: "Cooking Equipment", brand: "Rational", material: "Stainless Steel", quantity: 1, unit: "Pcs", condition: "Excellent", status: "In Stock", assignedTo: "", location: "Main Kitchen", purchaseDate: "2023-05-12", cost: "450,000", remarks: "Serviced monthly"}
-            ];
-            const batch = db.batch();
-            items.forEach(item => { const ref = db.collection('inventory').doc(); batch.set(ref, item); });
-            await batch.commit();
-        };
-
-        const seedEmployees = async () => {
-            if (employees.length > 0) return;
-            
-            const employeeData = [
-                {
-                    employeeId: "1", firstName: "Mubashara", lastName: "Rubbani", fatherName: "Ghhulam Rabani", cnic: "35202-798789-6", dob: "1995-10-22", gender: "Female", maritalStatus: "Single", phone: "03244092102", email: "mubasharamir22@gmail.com", permanentAddress: "house no.7, street no.8 noulakha park faiz bagh lahore", department: "IT Department", designation: "Software Engineer", joiningDate: "2025-12-25", salary: "120000", shift: "12am -9pm", role: "Employee"
-                },
-                {
-                    employeeId: "2", firstName: "Ayesha", lastName: "Arslan", fatherName: "w/o arslan arshad", cnic: "35201-1298156-0", dob: "1988-11-08", gender: "Female", maritalStatus: "Married", phone: "03214561551", email: "zoyaarslan2@gmail.com", permanentAddress: "house number 32 block b uet society lahore", department: "IT Department", designation: "Data Analyst", joiningDate: "2025-11-17", salary: "85000", shift: "09am -06pm", role: "Employee"
-                },
-                {
-                    employeeId: "3", firstName: "Zoofshan", lastName: "Mureed", fatherName: "mureed hussain", cnic: "3460345995974", dob: "1995-10-25", gender: "Female", maritalStatus: "Single", phone: "03095892784", email: "zoofishanmureedhussain@gmail.com", permanentAddress: "dhalay wali head mrala", department: "IT Department", designation: "QA Engineer", joiningDate: "2025-11-17", salary: "90000", shift: "9am-9pm", role: "Employee"
-                },
-                {
-                    employeeId: "4", firstName: "Tahir", lastName: "Iqbal", fatherName: "muhammad iqbal", cnic: "3660235602409", dob: "1990-12-01", gender: "Male", maritalStatus: "Married", phone: "03054547614", email: "tahirsab911@gmail.com", permanentAddress: "snaro wali puli muhala muhammadi melsi zila wiharri", department: "IT Department", designation: "Senior Dev", joiningDate: "2025-11-17", salary: "160000", shift: "12pm-9pm", role: "Employee"
-                },
-                {
-                    employeeId: "5", firstName: "Hanzala", lastName: "Sani", fatherName: "Muhammad Altaf", cnic: "35201-0272119-9", dob: "2002-07-19", gender: "Male", maritalStatus: "Single", phone: "03234976039", email: "hanzlaking0323@gamil.com", permanentAddress: "near alimantri collage ,chungi amar sidhu,Lahore", department: "Operations", designation: "Support Staff", joiningDate: "2025-01-01", salary: "72000", role: "Employee"
-                },
-                {
-                    employeeId: "6", firstName: "Imran", lastName: "Khalid", fatherName: "khalid iqbal", cnic: "35202-6888706-1", dob: "2007-09-09", gender: "Male", maritalStatus: "Single", phone: "03256044935", email: "imrankhalid522@gmail.com", permanentAddress: "kot lakpat ,street no. 8, mohala shabnam coloni near gravyard , lahore", department: "Operations", designation: "Junior Support", joiningDate: "2025-09-22", salary: "30000", role: "Employee"
-                }
-            ];
-
-            const batch = db.batch();
-            for (const emp of employeeData) {
-                const empRef = db.collection("employees").doc();
-                batch.set(empRef, { ...emp, status: 'Active', leaveBalance: { annual: { total: 14, used: 0 }, sick: { total: 7, used: 0 }, casual: { total: 6, used: 0 }, maternity: { total: 0, used: 0 }, paternity: { total: 0, used: 0 }, alternateDayOff: { total: 0, used: 0 }, others: { total: 0, used: 0 } } });
-                
-                // Add corresponding user account
-                const userRef = db.collection("users").doc(emp.email);
-                batch.set(userRef, { email: emp.email, password: "123456", passwordChangeRequired: false, employeeId: empRef.id });
-            }
-            await batch.commit();
-        };
-
-        seedKitchenInventory();
-        seedEmployees();
-    }
-  }, [isLoggedIn, currentUser, inventory.length, employees.length]);
-=======
   // Finance State
   const [accounts, setAccounts] = useState<FinanceAccount[]>([]);
   const [vouchers, setVouchers] = useState<Voucher[]>([]);
@@ -129,7 +71,6 @@ const App: React.FC = () => {
   const [semesterResults, setSemesterResults] = useState<SemesterResult[]>([]);
   const [studentRequests, setStudentRequests] = useState<StudentRequest[]>([]);
   const [academicNotifications, setAcademicNotifications] = useState<AcademicNotification[]>([]);
->>>>>>> 18b9016 (Updated student module workflow)
 
   // --- Auth Listener ---
   useEffect(() => {
@@ -232,8 +173,6 @@ const App: React.FC = () => {
                 setIsLoggedIn(true);
                 setCurrentUser(email);
                 setShowPasswordChange(!!userData.passwordChangeRequired);
-<<<<<<< HEAD
-=======
                 
                 // Logic to auto-select module if user only has 1 module access (Inventory)
                 const userPermissions = permissions[email] || {};
@@ -248,24 +187,17 @@ const App: React.FC = () => {
                     setSelectedModule('inventory_management');
                 }
                 
->>>>>>> 18b9016 (Updated student module workflow)
                 return true;
             }
         }
         return false;
     } catch (error: any) {
-<<<<<<< HEAD
-        console.error("Login process error:", error);
-=======
         console.error("Login error:", error);
->>>>>>> 18b9016 (Updated student module workflow)
         throw error;
     }
   };
 
   const handleLogout = async () => { try { await auth.signOut(); } catch (e) {} setIsLoggedIn(false); setCurrentUser(null); setSelectedModule(null); };
-<<<<<<< HEAD
-=======
 
   const calculateProRataLeaveBalance = (joiningDate: string): LeaveBalance => {
     const join = new Date(joiningDate);
@@ -277,7 +209,6 @@ const App: React.FC = () => {
     const ratio = (12 - joinMonth) / 12;
     return { annual: { total: Math.round(14 * ratio), used: 0 }, sick: { total: Math.round(7 * ratio), used: 0 }, casual: { total: Math.round(6 * ratio), used: 0 }, maternity: { total: 90, used: 0 }, paternity: { total: 7, used: 0 }, alternateDayOff: { total: Math.round(50 * ratio), used: 0 }, others: { total: 0, used: 0 } };
   };
->>>>>>> 18b9016 (Updated student module workflow)
 
   const handleAddEmployee = async (employeeData: Omit<Employee, 'id'>, password: string) => {
     const leaveBalance = employeeData.employmentType === 'Permanent' ? calculateProRataLeaveBalance(employeeData.joiningDate) : { annual: { total: 0, used: 0 }, sick: { total: 0, used: 0 }, casual: { total: 0, used: 0 }, maternity: { total: 0, used: 0 }, paternity: { total: 0, used: 0 }, alternateDayOff: { total: 0, used: 0 }, others: { total: 0, used: 0 } };
@@ -355,10 +286,6 @@ const App: React.FC = () => {
       if (reason) updates.rejectionReason = reason;
       await db.collection('supplyChainRequests').doc(id).update(updates);
   };
-<<<<<<< HEAD
-
-=======
->>>>>>> 18b9016 (Updated student module workflow)
   const handleIssueRequest = async (id: string) => {
       const request = supplyChainRequests.find(r => r.id === id); if (!request) throw new Error("Request not found");
       const batch = db.batch();
@@ -380,31 +307,6 @@ const App: React.FC = () => {
       if (po.originalRequestId) batch.update(db.collection('supplyChainRequests').doc(po.originalRequestId), { status: 'Pending Store' });
       await batch.commit();
   };
-<<<<<<< HEAD
-
-  const handleIssueAsset = async (assetId: string, employeeName: string) => {
-      const employee = employees.find(e => `${e.firstName} ${e.lastName}` === employeeName);
-      if (!employee) throw new Error("Employee not found");
-      await db.collection('inventory').doc(assetId).update({
-          status: 'In Use',
-          assignedTo: employeeName,
-          department: employee.department,
-          designation: employee.designation,
-          issueDate: new Date().toISOString().split('T')[0]
-      });
-  };
-
-  const handleReturnAsset = async (assetId: string) => {
-      await db.collection('inventory').doc(assetId).update({
-          status: 'In Stock',
-          assignedTo: '',
-          department: '',
-          designation: '',
-          issueDate: ''
-      });
-  };
-
-=======
   const handleIssueAsset = async (assetId: string, employeeName: string) => {
       const employee = employees.find(e => `${e.firstName} ${e.lastName}` === employeeName);
       if (!employee) throw new Error("Employee not found");
@@ -413,7 +315,6 @@ const App: React.FC = () => {
   const handleReturnAsset = async (assetId: string) => {
       await db.collection('inventory').doc(assetId).update({ status: 'In Stock', assignedTo: '', department: '', designation: '', issueDate: '' });
   };
->>>>>>> 18b9016 (Updated student module workflow)
   const handleAddRecipe = async (r: any) => { await db.collection('recipes').add(r); };
   const handleCreateTask = async (taskData: Omit<Task, 'id'>) => { await db.collection('tasks').add({ ...taskData, history: [{ action: 'Created', by: currentUser || 'Unknown', timestamp: new Date().toISOString(), details: `Task created with status ${taskData.status}` }] }); };
   const handleTaskWorkflowAction = async (taskId: string, newStatus: TaskStatus, action: string, remarks?: string) => {
@@ -424,16 +325,7 @@ const App: React.FC = () => {
       await db.collection('tasks').doc(taskId).update(updateData);
   };
   const handleDeleteTask = async (taskId: string) => { await db.collection('tasks').doc(taskId).delete(); };
-<<<<<<< HEAD
-  
-  const handleSendMessage = async (msg: Omit<ChatMessage, 'id'>) => { 
-      const cleanMsg = JSON.parse(JSON.stringify(msg));
-      await db.collection('messages').add(cleanMsg); 
-  };
-  
-=======
   const handleSendMessage = async (msg: Omit<ChatMessage, 'id'>) => { const cleanMsg = JSON.parse(JSON.stringify(msg)); await db.collection('messages').add(cleanMsg); };
->>>>>>> 18b9016 (Updated student module workflow)
   const handleAddNote = async (note: Omit<Note, 'id'>) => { await db.collection('notes').add(note); };
   const handleDeleteNote = async (id: string) => { await db.collection('notes').doc(id).delete(); };
   
@@ -699,13 +591,9 @@ const App: React.FC = () => {
       case 'inventory_management': return <InventoryDashboardPage onBack={() => setSelectedModule(null)} onLogout={handleLogout} currentUserEmail={currentUser || ''} permissions={permissions[currentUser || '']?.['inventory_management']} inventory={inventory} employees={employees} labs={labs} toners={toners} mrfs={mrfs} recipes={recipes} onAddNewAsset={handleAddNewAsset} onUpdateAsset={handleUpdateAsset} onDeleteAsset={handleDeleteAsset} onResignEmployee={() => {}} onAddSystem={handleAddSystem} onUpdateSystem={handleUpdateSystem} onDeleteSystem={handleDeleteSystem} onSaveTonerModel={handleSaveTonerModel} onDeleteTonerModel={onDeleteTonerModel} onMarkTonerEmpty={()=>{}} onMarkTonerFilled={()=>{}} onAddNewMRF={handleAddNewMRF} onUpdateMRF={handleUpdateMRF} onDeleteMRF={handleDeleteMRF} onUpdateKitchenStock={handleUpdateKitchenStock} onCreateSCRequest={handleCreateSCRequest} />;
       case 'supply_chain': return <SupplyChainDashboardPage onBack={() => setSelectedModule(null)} onLogout={handleLogout} currentUserEmail={currentUser || ''} inventory={inventory} employees={employees} requests={supplyChainRequests} purchaseRequests={purchaseRequests} purchaseOrders={purchaseOrders} recipes={recipes} vendors={vendors} onCreateRequest={handleCreateSCRequest} onActionRequest={handleActionRequest} onIssueRequest={handleIssueRequest} onForwardToPurchase={handleForwardToPurchase} onCreatePurchaseRequest={handleCreatePurchaseRequest} onCreatePO={handleCreatePO} onUpdatePO={handleUpdatePO} onDeletePO={handleDeletePO} onPOAction={handlePOAction} onGRN={handleGRN} onAddNewAsset={handleAddNewAsset} onUpdateAsset={handleUpdateAsset} onDeleteAsset={handleDeleteAsset} onIssueAsset={handleIssueAsset} onReturnAsset={handleReturnAsset} />;
       case 'task_manager': return <TaskManagerPage onBack={() => setSelectedModule(null)} onLogout={handleLogout} currentUserEmail={currentUser || ''} tasks={tasks} employees={employees} onCreateTask={handleCreateTask} onTaskWorkflowAction={handleTaskWorkflowAction} onDeleteTask={handleDeleteTask} messages={messages} onSendMessage={handleSendMessage} notes={notes} onAddNote={handleAddNote} onDeleteNote={handleDeleteNote} />;
-<<<<<<< HEAD
-      default: return <div className="flex h-screen items-center justify-center flex-col gap-4"><p>Module under construction</p><button onClick={() => setSelectedModule(null)} className="text-blue-900 underline">Go Back</button></div>;
-=======
       case 'finance': return <FinanceDashboardPage onBack={() => setSelectedModule(null)} onLogout={handleLogout} currentUserEmail={currentUser || ''} accounts={accounts} vouchers={vouchers} onAddAccount={handleAddAccount} onUpdateAccount={handleUpdateAccount} onDeleteAccount={handleDeleteAccount} onPostVoucher={handlePostVoucher} permissions={permissions[currentUser || '']?.['finance']} feeStructures={feeStructures} onAddFeeStructure={handleAddFeeStructure} onUpdateFeeStructure={handleUpdateFeeStructure} onDeleteFeeStructure={handleDeleteFeeStructure} feeChallans={feeChallans} onIssueChallan={handleIssueChallan} onCollectFee={handleCollectFee} financeExpenses={financeExpenses} onAddExpense={handleAddFinanceExpense} onActionExpense={handleActionExpense} vendorBills={vendorBills} onAddVendorBill={handleAddVendorBill} onPayVendorBill={handlePayVendorBill} vendors={vendors} financeAssets={financeAssets} onAddFinanceAsset={handleAddFinanceAsset} onDisposeAsset={handleDisposeAsset} reconciliations={reconciliations} onReconcile={handleReconcile} payrollHistory={payrollHistory} onPostPayroll={handlePostPayrollToFinance} auditLogs={auditLogs} />;
       case 'student': return <StudentDashboardPage onBack={() => setSelectedModule(null)} onLogout={handleLogout} currentUserEmail={currentUser || ''} permissions={permissions[currentUser || '']?.['student']} sessions={academicSessions} programs={degreePrograms} courses={courseCatalog} policies={academicPolicies} applicants={applicants} students={students} offeredCourses={offeredCourses} registrations={registrations} employees={employees} classrooms={classrooms} timetable={timetable} studentAttendance={studentAttendance} courseActivities={courseActivities} examSchedules={examSchedules} studentMarks={studentMarks} studentRequests={studentRequests} academicNotifications={academicNotifications} onAddSession={handleAddAcademicSession} onAddProgram={handleAddDegreeProgram} onAddCourse={handleAddCourse} onAddPolicy={handleAddPolicy} onAddApplicant={handleAddApplicant} onAdmitStudent={handleAdmitStudent} onOfferCourse={handleOfferCourse} onRegisterStudent={handleRegisterStudent} onAddClassroom={handleAddClassroom} onAddTimetableEntry={handleAddTimetableEntry} onMarkAttendance={handleMarkStudentAttendance} onAddActivity={handleAddCourseActivity} onAddExamSchedule={handleAddExamSchedule} onSaveMarks={handleSaveStudentMarks} onPublishResults={handlePublishResults} onActionRequest={handleActionStudentRequest} onPostNotification={handlePostNotification} />;
       default: return <div className="flex h-screen items-center justify-center flex-col gap-4"><p>Module tayyar ho raha hai</p><button onClick={() => setSelectedModule(null)} className="text-blue-900 underline">Go Back</button></div>;
->>>>>>> 18b9016 (Updated student module workflow)
     }
   }
 
