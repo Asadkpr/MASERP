@@ -1,4 +1,3 @@
-
 import type { SidebarLink } from '../types';
 import { DashboardIcon } from './icons/DashboardIcon';
 import { EmployeesIcon } from './icons/EmployeesIcon';
@@ -27,6 +26,9 @@ import { ChatIcon } from './icons/ChatIcon';
 import { CalendarIcon } from './icons/CalendarIcon';
 import { AnalyticsIcon } from './icons/AnalyticsIcon';
 import { NoteIcon } from './icons/NoteIcon';
+import { DollarIcon } from './icons/DollarIcon';
+// Add missing HomeIcon import
+import { HomeIcon } from './icons/HomeIcon';
 
 // HR Module Links
 export const hrMainLinks: SidebarLink[] = [
@@ -50,8 +52,6 @@ export const hrModuleLinks: SidebarLink[] = [
 export const hrPages: SidebarLink[] = [...hrMainLinks, ...hrModuleLinks];
 
 // Inventory Management Module Links
-
-// These are the sub-pages within the main "Inventory" section, for access control
 export const inventorySubPagesForAccess: SidebarLink[] = [
     { id: 'master', label: 'Master Inventory', icon: SupplyChainIcon },
     { id: 'laptops', label: 'Laptops', icon: DesktopIcon },
@@ -61,7 +61,6 @@ export const inventorySubPagesForAccess: SidebarLink[] = [
     { id: 'kitchen', label: "The Chef's Academy", icon: KitchenIcon },
 ];
 
-// These are the top-level pages for the Inventory module sidebar
 export const inventoryPages: SidebarLink[] = [
     { id: 'assets', label: 'Inventory', icon: DesktopIcon },
     { id: 'users', label: 'Users', icon: UsersIcon },
@@ -70,12 +69,10 @@ export const inventoryPages: SidebarLink[] = [
     { id: 'settings', label: 'Settings', icon: SettingsIcon },
 ];
 
-// This is the combined list for the User Access Management page
 const inventoryModuleForAccessConfig = [
     ...inventorySubPagesForAccess,
     ...inventoryPages.filter(p => ['users', 'mrf', 'reports', 'settings'].includes(p.id))
 ];
-
 
 // Supply Chain Module Links
 export const supplyChainPages: SidebarLink[] = [
@@ -89,19 +86,36 @@ export const supplyChainPages: SidebarLink[] = [
 // Finance Module Links
 export const financePages: SidebarLink[] = [
     { id: 'fin_dashboard', label: 'Dashboard', icon: DashboardIcon },
-    { id: 'budgeting', label: 'Budgeting', icon: FinanceIcon },
-    { id: 'payments', label: 'Payments', icon: PayrollIcon },
-    { id: 'receipts', label: 'Receipts', icon: PerformanceIcon },
-    { id: 'fin_reports', label: 'Reports', icon: ReportsIcon },
+    { id: 'chart_of_accounts', label: 'Chart of Accounts', icon: DepartmentsIcon },
+    { id: 'vouchers', label: 'Voucher Posting', icon: PayrollIcon },
+    { id: 'general_ledger', label: 'General Ledger', icon: PerformanceIcon },
+    { id: 'payroll_posting', label: 'Payroll Posting', icon: DollarIcon },
+    { id: 'student_fees', label: 'Student Fees', icon: StudentIcon },
+    { id: 'receivables', label: 'Accounts Receivable', icon: AnalyticsIcon },
+    { id: 'cash_bank', label: 'Cash & Bank', icon: FinanceIcon },
+    { id: 'fixed_assets', label: 'Fixed Assets', icon: DesktopIcon },
+    { id: 'expenses', label: 'Expense Management', icon: DollarIcon },
+    { id: 'payables', label: 'Accounts Payable', icon: RecruitmentIcon },
+    { id: 'fin_reports', label: 'Financial Reports', icon: ReportsIcon },
+    { id: 'audit_trail', label: 'Audit Trail', icon: UserAccessIcon },
 ];
 
-// Student Module Links
+// Student Module Links - FULLY EXPANDED for RBAC
 export const studentPages: SidebarLink[] = [
-    { id: 'std_dashboard', label: 'Dashboard', icon: DashboardIcon },
-    { id: 'applicants', label: 'Applicants', icon: RecruitmentIcon },
-    { id: 'student_portal', label: 'Student Portal', icon: StudentIcon },
-    { id: 'std_attendance', label: 'Attendance', icon: AttendanceIcon },
-    { id: 'course_delivery', label: 'Course Delivery', icon: TrainingIcon },
+    { id: 'std_dashboard', label: 'Portal Dashboard', icon: HomeIcon },
+    { id: 'applicants', label: 'Admissions & Applicants', icon: RecruitmentIcon },
+    { id: 'student_directory', label: 'Student Directory', icon: StudentIcon },
+    { id: 'course_offerings', label: 'Course Offerings', icon: TrainingIcon },
+    { id: 'course_registrations', label: 'Student Enrollments', icon: PayrollIcon },
+    { id: 'std_timetable', label: 'Class Timetable', icon: CalendarIcon },
+    { id: 'std_attendance', label: 'Attendance Ledger', icon: AttendanceIcon },
+    { id: 'course_delivery', label: 'Learning Management (LMS)', icon: TrainingIcon },
+    { id: 'exam_mgmt', label: 'Exam Scheduling', icon: AnalyticsIcon },
+    { id: 'std_marks', label: 'Faculty Marks Entry', icon: DollarIcon },
+    { id: 'std_results', label: 'GPA Result Audits', icon: AnalyticsIcon },
+    { id: 'std_services', label: 'Student Helpdesk', icon: ChatIcon },
+    { id: 'std_notifications', label: 'Campus Notifications', icon: RecruitmentIcon },
+    { id: 'academic_setup', label: 'Institutional Setup', icon: HomeIcon },
 ];
 
 // Website & Portals Module Links
@@ -121,7 +135,6 @@ export const taskManagerPages: SidebarLink[] = [
     { id: 'task_analytics', label: 'Team Analytics', icon: AnalyticsIcon },
     { id: 'task_notes', label: 'My Notes', icon: NoteIcon },
 ];
-
 
 export const modulePages: { [key: string]: SidebarLink[] } = {
   hr: hrPages,

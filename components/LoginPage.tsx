@@ -22,7 +22,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
       try {
         const success = await onLogin(email, password);
         if (!success) {
-          setError('Invalid email or password.');
+          setError('Invalid email or password. Please try again.');
         }
       } catch (err: any) {
         console.error("Login error", err);
@@ -36,120 +36,110 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
   };
 
   const handleResetDatabase = async () => {
-      if (!window.confirm("WARNING: This will PERMANENTLY DELETE ALL DATA (Employees, Inventory, Orders, etc.).\n\nAre you sure you want to completely wipe the system to start fresh?")) {
+      if (!window.confirm("WARNING: This will wipe all system data (Employees, Inventory, etc.).\n\nAre you sure you want to proceed?")) {
           return;
       }
-      
-      const confirmText = prompt("Type 'DELETE' to confirm wiping the database:");
+      const confirmText = prompt("Type 'DELETE' to confirm:");
       if (confirmText !== 'DELETE') return;
 
       setIsResetting(true);
       try {
-          const collections = [
-              'employees', 
-              'users', 
-              'inventory', 
-              'leaveRequests', 
-              'payrollHistory', 
-              'labs', 
-              'toners', 
-              'mrfs', 
-              'attendanceRecords', 
-              'supplyChainRequests', 
-              'purchaseRequests', 
-              'purchaseOrders', 
-              'recipes', 
-              'vendors'
-          ];
-
+          const collections = ['employees', 'users', 'inventory', 'leaveRequests', 'payrollHistory', 'labs', 'toners', 'mrfs', 'attendanceRecords', 'supplyChainRequests', 'purchaseRequests', 'purchaseOrders', 'recipes', 'vendors', 'tasks', 'messages', 'notes'];
           for (const colName of collections) {
               const colRef = db.collection(colName);
               const snapshot = await colRef.get();
               if (snapshot.empty) continue;
-
-              // Delete in batches of 500 (Firestore limit)
               const batch = db.batch();
-              let count = 0;
-              
-              for (const document of snapshot.docs) {
-                  batch.delete(db.collection(colName).doc(document.id));
-                  count++;
-              }
+              snapshot.docs.forEach(doc => batch.delete(doc.ref));
               await batch.commit();
-              console.log(`Deleted collection: ${colName}`);
           }
-
-          alert("System Reset Successful. All data has been deleted.\nYou can now login as 'admin' / '123' to start fresh.");
+          alert("System Reset Successful! You can now start fresh with 'admin' / '123'.");
           window.location.reload();
-
       } catch (err: any) {
-          console.error(err);
-          alert("Error resetting database: " + err.message);
+          alert("Error: " + err.message);
       } finally {
           setIsResetting(false);
       }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4 relative">
-      <div className="bg-white p-8 md:p-12 rounded-2xl shadow-lg w-full max-w-md transform transition-all duration-300 border-t-4 border-purple-900">
-        <div className="flex flex-col items-center mb-8">
-          <MasbotLogo className="h-20 w-auto mb-4" />
-          <p className="text-blue-900 font-medium">Admin Login</p>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-4">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
+        <div className="p-8">
+          <div className="flex flex-col items-center mb-8">
+            <MasbotLogo className="h-16 w-auto mb-6" />
+            <h1 className="text-2xl font-bold text-blue-900">MASERP System</h1>
+            <p className="text-blue-800 text-sm mt-1">Authorized Personnel Login Only</p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-blue-900 mb-1">
+                Email Address / Username
+              </label>
+              <input
+                id="email"
+                type="text"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent transition-all text-blue-900"
+                placeholder="Enter your email or 'admin'"
+                required
+              />
+            </div>
+
+            <div>
+              <div className="flex justify-between items-center mb-1">
+                <label htmlFor="password" className="block text-sm font-medium text-blue-900">
+                  Password
+                </label>
+                <a href="#" className="text-xs font-medium text-purple-700 hover:underline">Forgot?</a>
+              </div>
+              <input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent transition-all text-blue-900"
+                placeholder="••••••••"
+                required
+              />
+            </div>
+
+            {error && (
+              <div className="p-3 bg-red-50 border border-red-100 rounded-lg">
+                <p className="text-sm text-red-600 font-medium text-center">{error}</p>
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3 px-4 bg-purple-900 hover:bg-purple-800 text-white rounded-lg font-bold shadow-lg shadow-purple-900/20 transition-all active:scale-[0.98] disabled:bg-slate-300 flex justify-center items-center gap-2"
+            >
+              {loading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  <span>Authenticating...</span>
+                </>
+              ) : 'LOGIN'}
+            </button>
+          </form>
         </div>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-blue-900"
-            >
-              Email
-            </label>
-            <input
-              id="email"
-              type="text"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 block w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-purple-900 focus:border-purple-900 sm:text-sm text-blue-900"
-              placeholder="admin or user@example.com"
-            />
-          </div>
-          <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-blue-900"
-            >
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 block w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-purple-900 focus:border-purple-900 sm:text-sm text-blue-900"
-              placeholder="••••••••"
-            />
-          </div>
-          {error && <p className="text-sm text-red-600">{error}</p>}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-900 hover:bg-purple-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-900 transition-colors duration-200 disabled:bg-purple-400"
-          >
-            {loading ? 'Logging in...' : 'Login'}
-          </button>
-        </form>
+        <div className="bg-slate-50 p-4 border-t border-slate-200 text-center">
+          <p className="text-xs text-slate-500 font-medium">© 2024 MASBOT. All Rights Reserved.</p>
+        </div>
       </div>
 
-      {/* Developer Utility to Clear Database */}
-      <div className="absolute bottom-4 right-4">
-          <button 
-            onClick={handleResetDatabase}
-            disabled={isResetting}
-            className="text-xs text-red-300 hover:text-red-600 underline transition-colors"
-          >
-            {isResetting ? 'Wiping Data...' : 'Reset System Data (Danger)'}
-          </button>
+      {/* Admin Wipe Utility */}
+      <div className="mt-8 opacity-20 hover:opacity-100 transition-opacity">
+        <button 
+          onClick={handleResetDatabase}
+          disabled={isResetting}
+          className="text-[10px] text-slate-400 hover:text-red-500 font-bold uppercase tracking-tighter"
+        >
+          {isResetting ? 'Wiping Data...' : 'Wipe System Data'}
+        </button>
       </div>
     </div>
   );

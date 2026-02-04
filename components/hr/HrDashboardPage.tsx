@@ -11,6 +11,7 @@ import DepartmentsPage from './DepartmentsPage';
 import PayrollPage from './PayrollPage';
 import ReportsPage from './ReportsPage';
 import AttendancePage from './AttendancePage';
+import PerformancePage from './PerformancePage';
 import type { Employee, User, AllPermissions, ModulePermissions, LeaveRequest, PayrollRecord, AttendanceRecord } from '../../types';
 import { hrMainLinks, hrModuleLinks } from '../moduleNavigation';
 
@@ -27,6 +28,7 @@ interface HrDashboardPageProps {
   onAddLeaveRequest: (request: Omit<LeaveRequest, 'id'>) => void;
   onLeaveRequestAction: (requestId: string, action: 'Approve' | 'Reject') => void;
   onResignEmployee: (employeeId: string) => Promise<{ success: boolean; message: string }>;
+  onDeleteEmployee: (employeeId: string) => Promise<{ success: boolean; message: string }>;
   payrollHistory: PayrollRecord[];
   onRunPayroll: () => Promise<{ success: boolean; message: string }>;
   onUpdateEmployee: (employeeId: string, updatedData: Partial<Omit<Employee, 'id'>>) => Promise<{ success: boolean; message: string }>;
@@ -34,29 +36,11 @@ interface HrDashboardPageProps {
   onUploadAttendance: (records: Omit<AttendanceRecord, 'id'>[]) => Promise<{ success: boolean; message: string }>;
 }
 
-const HrDashboardPage: React.FC<HrDashboardPageProps> = ({ 
-    onBack, 
-    employees, 
-    users, 
-    onAddEmployee, 
-    onLogout, 
-    allPermissions, 
-    onUserPermissionsChange, 
-    currentUserEmail,
-    leaveRequests,
-    onAddLeaveRequest,
-    onLeaveRequestAction,
-    onResignEmployee,
-    payrollHistory,
-    onRunPayroll,
-    onUpdateEmployee,
-    attendanceRecords,
-    onUploadAttendance,
-}) => {
+const HrDashboardPage: React.FC<HrDashboardPageProps> = (props) => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const isAdmin = currentUserEmail === 'admin';
-  const currentUserHrPermissions = allPermissions[currentUserEmail]?.hr || {};
-  const currentEmployee = employees.find(emp => emp.email === currentUserEmail);
+  const isAdmin = props.currentUserEmail === 'admin';
+  const currentUserHrPermissions = props.allPermissions[props.currentUserEmail]?.hr || {};
+  const currentEmployee = props.employees.find(emp => emp.email === props.currentUserEmail);
 
   // Determine the first accessible page based on permissions
   const firstAccessiblePage = useMemo(() => {
@@ -93,31 +77,31 @@ const HrDashboardPage: React.FC<HrDashboardPageProps> = ({
   };
 
   const filteredEmployees = useMemo(() => {
-    if (!searchQuery) return employees;
+    if (!searchQuery) return props.employees;
     const lowercasedQuery = searchQuery.toLowerCase();
-    return employees.filter(emp =>
+    return props.employees.filter(emp =>
       `${emp.firstName} ${emp.lastName}`.toLowerCase().includes(lowercasedQuery) ||
       emp.email.toLowerCase().includes(lowercasedQuery) ||
       emp.department.toLowerCase().includes(lowercasedQuery) ||
       emp.designation.toLowerCase().includes(lowercasedQuery) ||
       (emp.employeeId || '').toLowerCase().includes(lowercasedQuery)
     );
-  }, [employees, searchQuery]);
+  }, [props.employees, searchQuery]);
 
   const filteredUsers = useMemo(() => {
-      if (!searchQuery) return users;
+      if (!searchQuery) return props.users;
       const lowercasedQuery = searchQuery.toLowerCase();
-      return users.filter(user => {
+      return props.users.filter(user => {
           if (user.email.toLowerCase().includes(lowercasedQuery)) {
               return true;
           }
-          const employee = employees.find(emp => emp.email === user.email);
+          const employee = props.employees.find(emp => emp.email === user.email);
           if (employee && `${employee.firstName} ${employee.lastName}`.toLowerCase().includes(lowercasedQuery)) {
               return true;
           }
           return false;
       });
-  }, [users, employees, searchQuery]);
+  }, [props.users, props.employees, searchQuery]);
 
   const renderContent = () => {
     if (!activePage) {
@@ -125,7 +109,7 @@ const HrDashboardPage: React.FC<HrDashboardPageProps> = ({
             <div className="p-6 text-center">
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Access Denied</h2>
                 <p className="mt-2 text-gray-600 dark:text-gray-400">You do not have permission to view any pages in this module. Please contact an administrator.</p>
-                <button onClick={onBack} className="mt-4 text-teal-600 hover:underline">Go Back</button>
+                <button onClick={props.onBack} className="mt-4 text-teal-600 hover:underline">Go Back</button>
             </div>
         );
     }
@@ -133,53 +117,60 @@ const HrDashboardPage: React.FC<HrDashboardPageProps> = ({
     switch (activePage) {
       case 'dashboard':
         return <HrDashboard 
-            employees={employees} 
-            leaveRequests={leaveRequests}
-            onLeaveRequestAction={onLeaveRequestAction}
+            employees={props.employees} 
+            leaveRequests={props.leaveRequests}
+            onLeaveRequestAction={props.onLeaveRequestAction}
             onNavigate={setActivePage}
         />;
       case 'employees':
-        return <AddEmployeePage onAddEmployee={onAddEmployee} employees={filteredEmployees} onResignEmployee={onResignEmployee} onUpdateEmployee={onUpdateEmployee} />;
+        return <AddEmployeePage onAddEmployee={props.onAddEmployee} employees={filteredEmployees} onResignEmployee={props.onResignEmployee} onUpdateEmployee={props.onUpdateEmployee} />;
       case 'attendance':
         return <AttendancePage 
-            employees={employees} 
-            attendanceRecords={attendanceRecords}
-            onUploadAttendance={onUploadAttendance}
-            currentUserEmail={currentUserEmail}
+            employees={props.employees} 
+            attendanceRecords={props.attendanceRecords}
+            onUploadAttendance={props.onUploadAttendance}
+            currentUserEmail={props.currentUserEmail}
         />;
       case 'reports':
         return <ReportsPage 
-            employees={employees} 
-            attendanceRecords={attendanceRecords}
-            leaveRequests={leaveRequests}
+            employees={props.employees} 
+            attendanceRecords={props.attendanceRecords}
+            leaveRequests={props.leaveRequests}
         />;
       case 'users':
-        return <UsersPage users={filteredUsers} employees={employees} />;
+        return <UsersPage 
+            users={filteredUsers} 
+            employees={props.employees} 
+            onDeleteEmployee={props.onDeleteEmployee}
+            currentUserEmail={props.currentUserEmail}
+        />;
       case 'user-access':
         return <UserAccessManagementPage 
-            users={users} 
-            employees={employees}
-            allPermissions={allPermissions}
-            onUserPermissionsChange={onUserPermissionsChange}
+            users={props.users} 
+            employees={props.employees}
+            allPermissions={props.allPermissions}
+            onUserPermissionsChange={props.onUserPermissionsChange}
         />;
       case 'leaves':
         return <LeavesPage 
-            currentUserEmail={currentUserEmail}
-            employees={employees}
-            leaveRequests={leaveRequests}
-            onAddLeaveRequest={onAddLeaveRequest}
-            onLeaveRequestAction={onLeaveRequestAction}
+            currentUserEmail={props.currentUserEmail}
+            employees={props.employees}
+            leaveRequests={props.leaveRequests}
+            onAddLeaveRequest={props.onAddLeaveRequest}
+            onLeaveRequestAction={props.onLeaveRequestAction}
         />;
       case 'departments':
         return <DepartmentsPage />;
       case 'payroll':
         return <PayrollPage 
-            employees={employees}
-            payrollHistory={payrollHistory}
-            attendanceRecords={attendanceRecords}
-            leaveRequests={leaveRequests}
-            onRunPayroll={onRunPayroll}
+            employees={props.employees}
+            payrollHistory={props.payrollHistory}
+            attendanceRecords={props.attendanceRecords}
+            leaveRequests={props.leaveRequests}
+            onRunPayroll={props.onRunPayroll}
         />;
+      case 'performance':
+        return <PerformancePage employees={props.employees} attendanceRecords={props.attendanceRecords} />;
       default:
         return <div className="p-6 bg-white rounded-lg shadow-sm">Content for {activePage}</div>;
     }
@@ -191,19 +182,19 @@ const HrDashboardPage: React.FC<HrDashboardPageProps> = ({
         activePage={activePage || ''} 
         setActivePage={setActivePage} 
         isCollapsed={isSidebarCollapsed} 
-        onLogout={onLogout}
+        onLogout={props.onLogout}
         permissions={currentUserHrPermissions}
-        currentUserEmail={currentUserEmail}
-        employees={employees}
+        currentUserEmail={props.currentUserEmail}
+        employees={props.employees}
       />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header 
           toggleSidebar={toggleSidebar}
           isSidebarCollapsed={isSidebarCollapsed} 
-          onLogout={onLogout}
+          onLogout={props.onLogout}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
-          onBack={onBack}
+          onBack={props.onBack}
         />
         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-slate-100">
           <div className="p-6">

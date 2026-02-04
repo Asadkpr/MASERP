@@ -110,6 +110,7 @@ export interface PayrollRecord {
   totalDeductions: number;
   totalNetPay: number;
   employeeRecords: EmployeePayrollRecord[];
+  isPostedToFinance?: boolean;
 }
 
 export interface AttendanceRecord {
@@ -370,4 +371,363 @@ export interface Note {
     content: string;
     color: 'yellow' | 'green' | 'blue' | 'purple' | 'red';
     date: string;
+}
+
+// --- Finance Module Types ---
+
+export type AccountType = 'Asset' | 'Liability' | 'Equity' | 'Income' | 'Expense';
+
+export interface FinanceAccount {
+    id: string;
+    code: string;
+    name: string;
+    type: AccountType;
+    parentId?: string; // For hierarchy
+    balance: number;
+    description?: string;
+}
+
+export type VoucherType = 'Journal' | 'Payment' | 'Receipt' | 'Contra';
+
+export interface VoucherEntry {
+    accountId: string;
+    accountName: string;
+    type: 'Debit' | 'Credit';
+    amount: number;
+    description?: string;
+}
+
+export interface Voucher {
+    id: string;
+    voucherNumber: string;
+    date: string;
+    type: VoucherType;
+    totalAmount: number;
+    description: string;
+    status: 'Draft' | 'Posted';
+    entries: VoucherEntry[];
+    createdBy: string;
+}
+
+export interface LedgerEntry {
+    id: string;
+    date: string;
+    voucherId: string;
+    voucherNumber: string;
+    accountId: string;
+    description: string;
+    debit: number;
+    credit: number;
+    balanceAfter: number;
+}
+
+// Student Fees
+export interface FeeItem {
+    name: string;
+    amount: number;
+}
+
+export interface FeeStructure {
+    id: string;
+    name: string;
+    category: string; // e.g., "Intermediate", "Undergrad"
+    items: FeeItem[];
+    totalAmount: number;
+}
+
+export interface FeeChallan {
+    id: string;
+    challanNumber: string;
+    studentId: string;
+    studentName: string;
+    studentEmail: string;
+    month: string; // e.g., "August"
+    year: string;
+    dueDate: string;
+    items: FeeItem[];
+    discount: number;
+    totalAmount: number;
+    paidAmount: number;
+    status: 'Unpaid' | 'Paid' | 'Partial' | 'Refunded';
+    paymentDate?: string;
+}
+
+// Expenses
+export interface FinanceExpense {
+    id: string;
+    category: string;
+    date: string;
+    amount: number;
+    description: string;
+    vendorId?: string;
+    vendorName?: string;
+    status: 'Pending' | 'Approved' | 'Paid';
+    approvedBy?: string;
+    paymentVoucherId?: string;
+}
+
+// Accounts Payable (Vendor Bills)
+export interface VendorBill {
+    id: string;
+    billNumber: string;
+    vendorId: string;
+    vendorName: string;
+    date: string;
+    dueDate: string;
+    poId?: string; // Link to supply chain PO
+    totalAmount: number;
+    paidAmount: number;
+    status: 'Unpaid' | 'Partial' | 'Paid';
+    description?: string;
+}
+
+// Cash & Bank
+export interface BankReconciliation {
+    id: string;
+    accountId: string;
+    statementDate: string;
+    statementBalance: number;
+    bookBalance: number;
+    isMatched: boolean;
+    reconciledBy: string;
+}
+
+// Fixed Assets (Finance Perspective)
+export interface FinanceFixedAsset {
+    id: string;
+    assetName: string;
+    assetCode: string;
+    category: string;
+    purchaseDate: string;
+    purchaseCost: number;
+    usefulLifeYears: number;
+    salvageValue: number;
+    accumulatedDepreciation: number;
+    depreciationMethod: 'Straight Line' | 'Declining Balance';
+    status: 'Active' | 'Disposed';
+    location?: string;
+    disposalDate?: string;
+    disposalValue?: number;
+}
+
+// Audit Trail
+export interface AuditLog {
+    id: string;
+    timestamp: string;
+    userEmail: string;
+    action: string; // e.g., "POST_VOUCHER", "UPDATE_ACCOUNT"
+    module: string;
+    details: string;
+    metadata?: any;
+}
+
+// --- STUDENT MODULE TYPES ---
+
+export interface AcademicSession {
+    id: string;
+    name: string; // e.g. "Fall 2026"
+    startDate: string;
+    endDate: string;
+    isActive: boolean;
+}
+
+export interface DegreeProgram {
+    id: string;
+    name: string; // e.g. "BS Computer Science"
+    code: string; // e.g. "BSCS"
+    department: string;
+    durationYears: number;
+    totalSemesters: number;
+}
+
+export interface CourseCatalog {
+    id: string;
+    code: string; // e.g. "CS101"
+    name: string; // e.g. "Programming Fundamentals"
+    creditHours: number;
+    description?: string;
+}
+
+export interface ProgramCurriculum {
+    id: string;
+    programId: string;
+    semesterNumber: number;
+    courses: {
+        courseId: string;
+        isElective: boolean;
+    }[];
+}
+
+export interface AcademicPolicy {
+    id: string;
+    type: 'Attendance' | 'Grading' | 'Admission';
+    title: string;
+    content: string;
+    rules: any;
+}
+
+export interface Applicant {
+    id: string;
+    firstName: string;
+    lastName: string;
+    fatherName: string;
+    email: string;
+    phone: string;
+    programId: string; // Link to DegreeProgram
+    sessionId: string; // Link to AcademicSession
+    status: 'Applied' | 'Interviewed' | 'Rejected' | 'Admitted';
+    applyDate: string;
+}
+
+export interface Student {
+    id: string;
+    rollNumber: string;
+    userId: string; // Official Email for login
+    firstName: string;
+    lastName: string;
+    fatherName: string;
+    email: string; // Official Email
+    personalEmail?: string;
+    phone: string;
+    gender: 'Male' | 'Female' | 'Other';
+    dob: string;
+    cnic: string;
+    address: string;
+    guardianName: string;
+    guardianPhone: string;
+    
+    // Academic Assignment
+    programId: string;
+    department: string;
+    sessionId: string;
+    batch: string;
+    section: string;
+    
+    // Lifecycle
+    status: 'Active' | 'Graduated' | 'Suspended' | 'Withdrawn';
+    admissionDate: string;
+    
+    // Documents (URLs)
+    documents?: {
+        photo?: string;
+        matric?: string;
+        inter?: string;
+        cnic?: string;
+    }
+}
+
+export interface OfferedCourse {
+    id: string;
+    courseId: string; // Ref to CourseCatalog
+    sessionId: string; // Ref to AcademicSession
+    instructorId: string; // Ref to Employee
+    section: string; // e.g., 'A', 'B'
+    capacity: number;
+    currentEnrollment: number;
+    semesterNumber: number; // 1 to 8
+    prerequisites?: string;
+    timetableSlot?: string;
+}
+
+export interface CourseRegistration {
+    id: string;
+    studentId: string; // Ref to Student
+    offeredCourseId: string; // Ref to OfferedCourse
+    registrationDate: string;
+    status: 'Pending' | 'Approved' | 'Dropped' | 'Withdrawn';
+    semesterNumber: number;
+}
+
+export interface Classroom {
+    id: string;
+    roomNumber: string;
+    building: string;
+    capacity: number;
+}
+
+export interface TimetableEntry {
+    id: string;
+    offeredCourseId: string;
+    classroomId: string;
+    day: 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday';
+    startTime: string; // HH:MM
+    endTime: string; // HH:MM
+}
+
+export interface StudentAttendance {
+    id: string;
+    studentId: string;
+    offeredCourseId: string;
+    timetableEntryId: string;
+    date: string; // YYYY-MM-DD
+    status: 'Present' | 'Absent' | 'Late';
+    markedBy: string; // Faculty Email
+}
+
+export interface CourseActivity {
+    id: string;
+    offeredCourseId: string;
+    type: 'Lecture' | 'Assignment' | 'Quiz' | 'Announcement';
+    title: string;
+    content: string; // URL or text
+    dueDate?: string;
+    postedDate: string;
+    isPublished: boolean;
+}
+
+export interface ExamSchedule {
+    id: string;
+    sessionId: string;
+    offeredCourseId: string;
+    date: string;
+    startTime: string;
+    endTime: string;
+    classroomId: string; // Venue
+    invigilatorId: string; // Ref to Employee
+    status: 'Draft' | 'Published';
+}
+
+export interface StudentMark {
+    id: string;
+    studentId: string;
+    offeredCourseId: string;
+    sessionalMarks: number; // Quizzes, Assignments, Mids
+    finalExamMarks: number;
+    totalMarks: number;
+    grade: string;
+    gradePoint: number;
+    status: 'Saved' | 'Verified' | 'Published';
+    entryDate: string;
+}
+
+export interface SemesterResult {
+    id: string;
+    studentId: string;
+    sessionId: string;
+    semesterNumber: number;
+    gpa: number;
+    totalCredits: number;
+    earnedCredits: number;
+    status: 'Draft' | 'Finalized';
+}
+
+export interface StudentRequest {
+    id: string;
+    studentId: string;
+    type: 'Leave Application' | 'Course Withdrawal' | 'Freeze Semester' | 'Transcript Request' | 'Degree Issuance' | 'Migration Request' | 'Section Change';
+    description: string;
+    date: string;
+    status: 'Pending' | 'In Review' | 'Approved' | 'Rejected';
+    remarks?: string;
+    approvalDate?: string;
+}
+
+export interface AcademicNotification {
+    id: string;
+    title: string;
+    content: string;
+    category: 'Academic' | 'Exam Alert' | 'Class Notification' | 'General Notice';
+    postedBy: string; // Email
+    timestamp: string;
+    audience: 'All' | string; // Program ID or 'All'
 }
